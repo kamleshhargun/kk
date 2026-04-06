@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <style>
+    body { font-family: Arial; }
+    button { margin: 5px; padding: 5px 10px; }
+    #settingsBox {
+      display: none;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Return Management Admin Panel</h2>
+
+<button onclick="toggleSettings()">⚙️ Settings</button>
+
+<div id="settingsBox">
+  <h3>Settings</h3>
+
+  <!-- Return Form URL -->
+  <label>Return Form URL:</label><br>
+  <input type="text" id="formURL" placeholder="Paste form URL here" style="width:300px"><br><br>
+  <button onclick="openForm()">Open Return Form</button>
+
+  <hr>
+
+  <!-- CSV Export -->
+  <button onclick="exportCSV()">📥 Export CSV</button>
+</div>
+
+<table border="1" id="dataTable"></table>
+
+<script>
+const sheetURL = "PASTE_YOUR_JSON_API_URL";
+let globalData = [];
+
+function toggleSettings() {
+  const box = document.getElementById("settingsBox");
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+function openForm() {
+  const url = document.getElementById("formURL").value;
+  if(url) {
+    window.open(url, "_blank");
+  } else {
+    alert("Please enter form URL");
+  }
+}
+
+function loadData() {
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      globalData = data;
+
+      let html = "<tr><th>Date</th><th>Time</th><th>Name</th><th>Mobile</th><th>Status</th><th>Action</th></tr>";
+
+      data.forEach((row, index) => {
+        html += `<tr>
+          <td>${row.Date}</td>
+          <td>${row.Time}</td>
+          <td>${row.Name}</td>
+          <td>${row.Mobile}</td>
+          <td>${row.Status}</td>
+          <td>
+            <button onclick="sendWhatsApp(${index}, 'Return Initiated')">Return</button>
+            <button onclick="sendWhatsApp(${index}, 'Received')">Received</button>
+            <button onclick="sendWhatsApp(${index}, 'Completed')">Complete</button>
+            <button onclick="markDuplicate(${index})">Duplicate</button>
+          </td>
+        </tr>`;
+      });
+
+      document.getElementById("dataTable").innerHTML = html;
+    });
+}
+
+function sendWhatsApp(index, status) {
+  let row = globalData[index];
+
+  let msg = `Hello ${row.Name},
+Your request status: ${status}`;
+
+  let url = `https://wa.me/91${row.Mobile}?text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank");
+}
+
+function markDuplicate(index) {
+  alert("Mark duplicate in Google Sheet manually OR connect API");
+}
+
+function exportCSV() {
+  let csv = [];
+
+  // headers
+  let headers = Object.keys(globalData[0]);
+  csv.push(headers.join(","));
+
+  // rows
+  globalData.forEach(row => {
+    let values = headers.map(h => `"${row[h]}"`);
+    csv.push(values.join(","));
+  });
+
+  // download
+  let blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "data.csv";
+  a.click();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
