@@ -16,39 +16,38 @@ body {
   border-radius: 10px;
   box-shadow: 0 0 10px #ccc;
 }
-h2 { text-align: center; }
+h2 { text-align:center; }
 
 .tabs {
-  text-align: center;
-  margin-bottom: 15px;
+  text-align:center;
+  margin-bottom:15px;
 }
 .tabs button {
-  padding: 8px 15px;
-  margin: 5px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  padding:8px 15px;
+  margin:5px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
 }
 .active {
-  background: #28a745;
-  color: white;
+  background:#28a745;
+  color:white;
 }
 
 table {
-  width: 100%;
+  width:100%;
   border-collapse: collapse;
 }
 th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
+  border:1px solid #ccc;
+  padding:8px;
+  text-align:center;
 }
 
 button.action {
-  padding: 5px 8px;
-  margin: 2px;
+  padding:5px 8px;
+  margin:2px;
 }
-
 </style>
 
 </head>
@@ -74,20 +73,19 @@ button.action {
 </div>
 
 <script>
-const sheetURL = "https://script.google.com/macros/s/AKfycbxuRygsb0VHu7A7QmgHl_m-Zwcz2phKHKnqtYrCNwz1T83KHvwPzhwBNkUxCiW6Cfdf/exec"; // same doGet वाला URL
+const sheetURL = "https://script.google.com/macros/s/AKfycbxuRygsb0VHu7A7QmgHl_m-Zwcz2phKHKnqtYrCNwz1T83KHvwPzhwBNkUxCiW6Cfdf/exec";
 let globalData = [];
 let currentTab = "return";
 
 function setTab(tab){
   currentTab = tab;
 
-  document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
   document.getElementById(tab+"Tab").classList.add("active");
 
   renderTable();
 }
 
-// 🔄 Load Data
 function loadData(){
   fetch(sheetURL)
   .then(res => res.json())
@@ -96,12 +94,17 @@ function loadData(){
     renderTable();
   })
   .catch(()=>{
-    alert("Data load error ❌\nCheck doGet deployment");
+    alert("❌ Data load error");
   });
 }
 
-// 📊 Render Table
 function renderTable(){
+
+  if(globalData.length === 0){
+    document.getElementById("dataTable").innerHTML = "<tr><td>No Data</td></tr>";
+    return;
+  }
+
   let html = "<tr><th>ID</th><th>Name</th><th>Mobile</th><th>Type</th><th>Status</th><th>Action</th></tr>";
 
   globalData.forEach((row,index)=>{
@@ -112,22 +115,20 @@ function renderTable(){
 
     let show = false;
 
-    if(currentTab === "return" && type === "return" && duplicate !== "yes" && status !== "done") show = true;
-    if(currentTab === "exchange" && type === "exchange" && duplicate !== "yes" && status !== "done") show = true;
-    if(currentTab === "duplicate" && duplicate === "yes") show = true;
-    if(currentTab === "done" && status === "done") show = true;
+    if(currentTab==="return" && type==="return" && duplicate!=="yes" && status!=="done") show=true;
+    if(currentTab==="exchange" && type==="exchange" && duplicate!=="yes" && status!=="done") show=true;
+    if(currentTab==="duplicate" && duplicate==="yes") show=true;
+    if(currentTab==="done" && status==="done") show=true;
 
     if(show){
       html += `<tr>
-        <td>${row["Request No"] || ""}</td>
-        <td>${row.Name || ""}</td>
-        <td>${row.Mobile || ""}</td>
-        <td>${row.Type || ""}</td>
-        <td>${row.Status || ""}</td>
+        <td>${row["Request No"]||""}</td>
+        <td>${row.Name||""}</td>
+        <td>${row.Mobile||""}</td>
+        <td>${row.Type||""}</td>
+        <td>${row.Status||""}</td>
         <td>
           <button class="action" onclick="sendWhatsApp(${index})">Msg</button>
-          <button class="action" onclick="alert('Update in Sheet')">Done</button>
-          <button class="action" onclick="alert('Mark duplicate in Sheet')">Duplicate</button>
         </td>
       </tr>`;
     }
@@ -137,7 +138,6 @@ function renderTable(){
   document.getElementById("dataTable").innerHTML = html;
 }
 
-// 📲 WhatsApp
 function sendWhatsApp(i){
   let r = globalData[i];
 
@@ -148,56 +148,33 @@ Status: ${r.Status}`;
   window.open(`https://wa.me/91${r.Mobile}?text=${encodeURIComponent(msg)}`);
 }
 
-// 📝 Open Form
 function openForm(){
-  window.open("return-form.html", "_blank"); // same folder me hona chahiye
+  window.open("return-form.html","_blank");
 }
 
-// 📥 CSV Export (IST FIX)
 function exportCSV(){
 
-  if(globalData.length === 0){
+  if(globalData.length===0){
     alert("No data");
     return;
   }
 
-  let csv = [];
-
-  let headers = Object.keys(globalData[0]);
+  let csv=[];
+  let headers=Object.keys(globalData[0]);
   csv.push(headers.join(","));
 
-  globalData.forEach(row => {
-
-    let values = headers.map(h => {
-
-      let val = row[h];
-
-      // Date fix
-      if(h === "Date"){
-        let d = new Date(val);
-        val = d.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata"});
-      }
-
-      // Time fix
-      if(h === "Time"){
-        let t = new Date("1970-01-01T"+val+"Z");
-        val = t.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata"});
-      }
-
-      return `"${val}"`;
-    });
-
+  globalData.forEach(row=>{
+    let values=headers.map(h=>`"${row[h]||""}"`);
     csv.push(values.join(","));
   });
 
-  let blob = new Blob([csv.join("\n")]);
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "data.csv";
+  let blob=new Blob([csv.join("\n")]);
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="data.csv";
   a.click();
 }
 
-// First load
 loadData();
 </script>
 
