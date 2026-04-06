@@ -16,9 +16,8 @@ body {
   border-radius: 10px;
   box-shadow: 0 0 10px #ccc;
 }
-h2 {
-  text-align: center;
-}
+h2 { text-align: center; }
+
 .tabs {
   text-align: center;
   margin-bottom: 15px;
@@ -34,6 +33,7 @@ h2 {
   background: #28a745;
   color: white;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -43,16 +43,12 @@ th, td {
   padding: 8px;
   text-align: center;
 }
+
 button.action {
   padding: 5px 8px;
   margin: 2px;
 }
-#settingsBox {
-  display:none;
-  border:1px solid #ccc;
-  padding:10px;
-  margin-bottom:10px;
-}
+
 </style>
 
 </head>
@@ -67,13 +63,10 @@ button.action {
   <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
   <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
   <button onclick="setTab('done')" id="doneTab">Done</button>
-  <button onclick="toggleSettings()">⚙️</button>
-</div>
 
-<div id="settingsBox">
-  <input type="text" id="formURL" placeholder="Return Form URL" style="width:250px">
-  <button onclick="openForm()">Open Form</button>
-  <button onclick="exportCSV()">Export CSV</button>
+  <button onclick="loadData()">🔄</button>
+  <button onclick="openForm()">📝</button>
+  <button onclick="exportCSV()">📥</button>
 </div>
 
 <table id="dataTable"></table>
@@ -81,7 +74,7 @@ button.action {
 </div>
 
 <script>
-const sheetURL = "https://script.google.com/macros/s/AKfycbwR4IpBgdu68_JDZenFyu8KOmvrMinifDMyzyKSpAUn78oslKpYYG9-mqQHU5pfVYC6/exec";
+const sheetURL = "https://script.google.com/macros/s/AKfycbwR4IpBgdu68_JDZenFyu8KOmvrMinifDMyzyKSpAUn78oslKpYYG9-mqQHU5pfVYC6/exec"; // same doGet वाला URL
 let globalData = [];
 let currentTab = "return";
 
@@ -94,48 +87,47 @@ function setTab(tab){
   renderTable();
 }
 
-function toggleSettings(){
-  let box = document.getElementById("settingsBox");
-  box.style.display = box.style.display === "none" ? "block" : "none";
-}
-
-function openForm(){
-  let url = document.getElementById("formURL").value;
-  if(url) window.open(url,"_blank");
-}
-
+// 🔄 Load Data
 function loadData(){
   fetch(sheetURL)
   .then(res => res.json())
   .then(data=>{
     globalData = data;
     renderTable();
+  })
+  .catch(()=>{
+    alert("Data load error ❌\nCheck doGet deployment");
   });
 }
 
+// 📊 Render Table
 function renderTable(){
   let html = "<tr><th>ID</th><th>Name</th><th>Mobile</th><th>Type</th><th>Status</th><th>Action</th></tr>";
 
   globalData.forEach((row,index)=>{
 
+    let type = (row.Type || "").toLowerCase();
+    let status = (row.Status || "").toLowerCase();
+    let duplicate = (row.Duplicate || "").toLowerCase();
+
     let show = false;
 
-    if(currentTab === "return" && row.Type === "return" && row.Duplicate !== "yes" && row.Status !== "Done") show = true;
-    if(currentTab === "exchange" && row.Type === "exchange" && row.Duplicate !== "yes" && row.Status !== "Done") show = true;
-    if(currentTab === "duplicate" && row.Duplicate === "yes") show = true;
-    if(currentTab === "done" && row.Status === "Done") show = true;
+    if(currentTab === "return" && type === "return" && duplicate !== "yes" && status !== "done") show = true;
+    if(currentTab === "exchange" && type === "exchange" && duplicate !== "yes" && status !== "done") show = true;
+    if(currentTab === "duplicate" && duplicate === "yes") show = true;
+    if(currentTab === "done" && status === "done") show = true;
 
     if(show){
       html += `<tr>
-        <td>${row["Request No"]}</td>
-        <td>${row.Name}</td>
-        <td>${row.Mobile}</td>
-        <td>${row.Type}</td>
-        <td>${row.Status}</td>
+        <td>${row["Request No"] || ""}</td>
+        <td>${row.Name || ""}</td>
+        <td>${row.Mobile || ""}</td>
+        <td>${row.Type || ""}</td>
+        <td>${row.Status || ""}</td>
         <td>
           <button class="action" onclick="sendWhatsApp(${index})">Msg</button>
-          <button class="action" onclick="markDone(${index})">Done</button>
-          <button class="action" onclick="markDuplicate(${index})">Duplicate</button>
+          <button class="action" onclick="alert('Update in Sheet')">Done</button>
+          <button class="action" onclick="alert('Mark duplicate in Sheet')">Duplicate</button>
         </td>
       </tr>`;
     }
@@ -145,31 +137,57 @@ function renderTable(){
   document.getElementById("dataTable").innerHTML = html;
 }
 
+// 📲 WhatsApp
 function sendWhatsApp(i){
   let r = globalData[i];
 
-  let msg = `Hello ${r.Name},
+  let msg = `Hello ${r.Name}
 Request ID: ${r["Request No"]}
-Status Update: ${r.Status}`;
+Status: ${r.Status}`;
 
   window.open(`https://wa.me/91${r.Mobile}?text=${encodeURIComponent(msg)}`);
 }
 
-function markDone(i){
-  alert("Mark Done in Sheet manually OR connect API next step");
+// 📝 Open Form
+function openForm(){
+  window.open("return-form.html", "_blank"); // same folder me hona chahiye
 }
 
-function markDuplicate(i){
-  alert("Mark Duplicate in Sheet manually OR API next step");
-}
-
+// 📥 CSV Export (IST FIX)
 function exportCSV(){
+
+  if(globalData.length === 0){
+    alert("No data");
+    return;
+  }
+
   let csv = [];
+
   let headers = Object.keys(globalData[0]);
   csv.push(headers.join(","));
 
-  globalData.forEach(row=>{
-    csv.push(headers.map(h=>`"${row[h]}"`).join(","));
+  globalData.forEach(row => {
+
+    let values = headers.map(h => {
+
+      let val = row[h];
+
+      // Date fix
+      if(h === "Date"){
+        let d = new Date(val);
+        val = d.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata"});
+      }
+
+      // Time fix
+      if(h === "Time"){
+        let t = new Date("1970-01-01T"+val+"Z");
+        val = t.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata"});
+      }
+
+      return `"${val}"`;
+    });
+
+    csv.push(values.join(","));
   });
 
   let blob = new Blob([csv.join("\n")]);
@@ -179,6 +197,7 @@ function exportCSV(){
   a.click();
 }
 
+// First load
 loadData();
 </script>
 
