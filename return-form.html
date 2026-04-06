@@ -97,32 +97,30 @@ form.addEventListener("submit", e => {
 
   // Send to Google Sheet
   fetch(scriptURL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  })
-  .then(() => {
-    msg.innerText = "Request Submitted Successfully!";
-  });
+  method: "POST",
+  body: JSON.stringify(data)
+})
+.then(res => res.json())
+.then(res => {
 
-  // WhatsApp Message
+  const requestID = res.request_id;
+
   const message = `📦 Return Request
 
+Request ID: ${requestID}
 Name: ${data.name}
 Mobile: ${data.mobile}
-Email: ${data.email}
 Order ID: ${data.order_id}
+
 Return: ${data.return_product}
 Exchange: ${data.exchange_product}
-Reason: ${data.description}
 
 Date: ${date}
 Time: ${time}`;
 
   const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-
   window.open(url, "_blank");
 
-  form.reset();
 });
 </script>
 
