@@ -1,115 +1,178 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel</title>
-  <style>
-    body { font-family: Arial; }
-    button { margin: 5px; padding: 5px 10px; }
-    #settingsBox {
-      display: none;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px 0;
-    }
-  </style>
+<title>Admin Panel</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f2f2f2;
+}
+.container {
+  max-width: 1000px;
+  margin: 20px auto;
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+}
+h2 {
+  text-align: center;
+}
+.tabs {
+  text-align: center;
+  margin-bottom: 15px;
+}
+.tabs button {
+  padding: 8px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.active {
+  background: #28a745;
+  color: white;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+button.action {
+  padding: 5px 8px;
+  margin: 2px;
+}
+#settingsBox {
+  display:none;
+  border:1px solid #ccc;
+  padding:10px;
+  margin-bottom:10px;
+}
+</style>
+
 </head>
 <body>
 
-<h2>Return Management Admin Panel</h2>
+<div class="container">
 
-<button onclick="toggleSettings()">⚙️ Settings</button>
+<h2>Admin Panel</h2>
 
-<div id="settingsBox">
-  <h3>Settings</h3>
-
-  <!-- Return Form URL -->
-  <label>Return Form URL:</label><br>
-  <input type="text" id="formURL" placeholder="Paste form URL here" style="width:300px"><br><br>
-  <button onclick="openForm()">Open Return Form</button>
-
-  <hr>
-
-  <!-- CSV Export -->
-  <button onclick="exportCSV()">📥 Export CSV</button>
+<div class="tabs">
+  <button onclick="setTab('return')" id="returnTab" class="active">Return</button>
+  <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
+  <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
+  <button onclick="setTab('done')" id="doneTab">Done</button>
+  <button onclick="toggleSettings()">⚙️</button>
 </div>
 
-<table border="1" id="dataTable"></table>
+<div id="settingsBox">
+  <input type="text" id="formURL" placeholder="Return Form URL" style="width:250px">
+  <button onclick="openForm()">Open Form</button>
+  <button onclick="exportCSV()">Export CSV</button>
+</div>
+
+<table id="dataTable"></table>
+
+</div>
 
 <script>
 const sheetURL = "https://script.google.com/macros/s/AKfycbxrjJeEdvZH8ZYEZmUec_cmeFQKlt6vdqgoAWThpRF13sHI_Can1xuAdQB7TZPZ37rm/exec";
 let globalData = [];
+let currentTab = "return";
 
-function toggleSettings() {
-  const box = document.getElementById("settingsBox");
+function setTab(tab){
+  currentTab = tab;
+
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+  document.getElementById(tab+"Tab").classList.add("active");
+
+  renderTable();
+}
+
+function toggleSettings(){
+  let box = document.getElementById("settingsBox");
   box.style.display = box.style.display === "none" ? "block" : "none";
 }
 
-function openForm() {
-  const url = document.getElementById("formURL").value;
-  if(url) {
-    window.open(url, "_blank");
-  } else {
-    alert("Please enter form URL");
-  }
+function openForm(){
+  let url = document.getElementById("formURL").value;
+  if(url) window.open(url,"_blank");
 }
 
-function loadData() {
+function loadData(){
   fetch(sheetURL)
-    .then(res => res.json())
-    .then(data => {
-      globalData = data;
-
-      let html = "<tr><th>Date</th><th>Time</th><th>Name</th><th>Mobile</th><th>Status</th><th>Action</th></tr>";
-
-      data.forEach((row, index) => {
-        html += `<tr>
-          <td>${row.Date}</td>
-          <td>${row.Time}</td>
-          <td>${row.Name}</td>
-          <td>${row.Mobile}</td>
-          <td>${row.Status}</td>
-          <td>
-            <button onclick="sendWhatsApp(${index}, 'Return Initiated')">Return</button>
-            <button onclick="sendWhatsApp(${index}, 'Received')">Received</button>
-            <button onclick="sendWhatsApp(${index}, 'Completed')">Complete</button>
-            <button onclick="markDuplicate(${index})">Duplicate</button>
-          </td>
-        </tr>`;
-      });
-
-      document.getElementById("dataTable").innerHTML = html;
-    });
+  .then(res => res.json())
+  .then(data=>{
+    globalData = data;
+    renderTable();
+  });
 }
 
-function sendWhatsApp(index, status) {
-  let row = globalData[index];
+function renderTable(){
+  let html = "<tr><th>ID</th><th>Name</th><th>Mobile</th><th>Type</th><th>Status</th><th>Action</th></tr>";
 
-  let msg = `Hello ${row.Name},
-Your request status: ${status}`;
+  globalData.forEach((row,index)=>{
 
-  let url = `https://wa.me/91${row.Mobile}?text=${encodeURIComponent(msg)}`;
-  window.open(url, "_blank");
+    let show = false;
+
+    if(currentTab === "return" && row.Type === "return" && row.Duplicate !== "yes" && row.Status !== "Done") show = true;
+    if(currentTab === "exchange" && row.Type === "exchange" && row.Duplicate !== "yes" && row.Status !== "Done") show = true;
+    if(currentTab === "duplicate" && row.Duplicate === "yes") show = true;
+    if(currentTab === "done" && row.Status === "Done") show = true;
+
+    if(show){
+      html += `<tr>
+        <td>${row["Request No"]}</td>
+        <td>${row.Name}</td>
+        <td>${row.Mobile}</td>
+        <td>${row.Type}</td>
+        <td>${row.Status}</td>
+        <td>
+          <button class="action" onclick="sendWhatsApp(${index})">Msg</button>
+          <button class="action" onclick="markDone(${index})">Done</button>
+          <button class="action" onclick="markDuplicate(${index})">Duplicate</button>
+        </td>
+      </tr>`;
+    }
+
+  });
+
+  document.getElementById("dataTable").innerHTML = html;
 }
 
-function markDuplicate(index) {
-  alert("Mark duplicate in Google Sheet manually OR connect API");
+function sendWhatsApp(i){
+  let r = globalData[i];
+
+  let msg = `Hello ${r.Name},
+Request ID: ${r["Request No"]}
+Status Update: ${r.Status}`;
+
+  window.open(`https://wa.me/91${r.Mobile}?text=${encodeURIComponent(msg)}`);
 }
 
-function exportCSV() {
+function markDone(i){
+  alert("Mark Done in Sheet manually OR connect API next step");
+}
+
+function markDuplicate(i){
+  alert("Mark Duplicate in Sheet manually OR API next step");
+}
+
+function exportCSV(){
   let csv = [];
-
-  // headers
   let headers = Object.keys(globalData[0]);
   csv.push(headers.join(","));
 
-  // rows
-  globalData.forEach(row => {
-    let values = headers.map(h => `"${row[h]}"`);
-    csv.push(values.join(","));
+  globalData.forEach(row=>{
+    csv.push(headers.map(h=>`"${row[h]}"`).join(","));
   });
 
-  // download
-  let blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  let blob = new Blob([csv.join("\n")]);
   let a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "data.csv";
