@@ -17,9 +17,8 @@ body {
   border-radius: 10px;
   box-shadow: 0 0 10px #ccc;
 }
-h2 {
-  text-align: center;
-}
+h2 { text-align: center; }
+
 .toggle-btns {
   text-align: center;
   margin-bottom: 10px;
@@ -35,6 +34,7 @@ h2 {
   background: #28a745;
   color: white;
 }
+
 input, textarea {
   width: 100%;
   padding: 10px;
@@ -42,9 +42,8 @@ input, textarea {
   border-radius: 5px;
   border: 1px solid #ccc;
 }
-textarea {
-  resize: none; /* disable resize */
-}
+textarea { resize: none; }
+
 button.submit-btn {
   width: 100%;
   padding: 12px;
@@ -54,12 +53,26 @@ button.submit-btn {
   border-radius: 5px;
   font-size: 16px;
 }
-button.submit-btn:hover {
-  background: #218838;
-}
-.success {
+
+.success-box {
+  display: none;
   text-align: center;
-  font-weight: bold;
+  padding: 15px;
+  background: #e8f5e9;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+.success-box b {
+  color: #2e7d32;
+}
+.whatsapp-btn {
+  margin-top: 10px;
+  padding: 10px;
+  background: #25D366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>
 
@@ -67,6 +80,7 @@ button.submit-btn:hover {
 <body>
 
 <div class="container">
+
 <h2>Return / Exchange Form</h2>
 
 <div class="toggle-btns">
@@ -76,16 +90,12 @@ button.submit-btn:hover {
 
 <form id="myForm">
 
-<input type="hidden" name="type" id="type" value="Exchange">
+<input type="hidden" name="type" id="type" value="exchange">
 
 <input type="text" name="name" placeholder="Customer Name" required>
-
 <input type="tel" name="mobile" placeholder="Mobile Number" required pattern="[0-9]{10}">
-
 <input type="email" name="email" placeholder="Email ID" required>
-
 <input type="text" name="order_id" placeholder="Order ID" required>
-
 <input type="text" name="return_product" placeholder="Product Name (Return)" required>
 
 <div id="exchangeField">
@@ -94,59 +104,64 @@ button.submit-btn:hover {
 
 <textarea name="description" placeholder="Reason / Description" required></textarea>
 
-<button type="submit" class="submit-btn">Submit Request</button>
-
-<p class="success" id="msg"></p>
+<button type="submit" class="submit-btn" id="submitBtn">Submit Request</button>
 
 </form>
+
+<div class="success-box" id="successBox"></div>
+
 </div>
 
 <script>
+
 const scriptURL = "https://script.google.com/macros/s/AKfycbxRfGkQlautYe5s0d5QXEFZ_vRl9fRT0nQorcZqMaIstn7myJMICCV7S3PqD4SdDwkL/exec";
 const whatsappNumber = "919828222076";
 
 const form = document.getElementById("myForm");
-const msg = document.getElementById("msg");
+const successBox = document.getElementById("successBox");
+const submitBtn = document.getElementById("submitBtn");
+
+let lastMessage = "";
 
 function setMode(mode) {
   document.getElementById("type").value = mode;
 
   if (mode === "return") {
     document.getElementById("exchangeField").style.display = "none";
-    document.getElementById("exchangeBtn").classList.remove("active");
-    document.getElementById("returnBtn").classList.add("active");
+    exchangeBtn.classList.remove("active");
+    returnBtn.classList.add("active");
   } else {
     document.getElementById("exchangeField").style.display = "block";
-    document.getElementById("exchangeBtn").classList.add("active");
-    document.getElementById("returnBtn").classList.remove("active");
+    exchangeBtn.classList.add("active");
+    returnBtn.classList.remove("active");
   }
 }
 
-form.addEventListener("submit", e => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  msg.innerText = "⏳ Please wait...";
+  submitBtn.disabled = true;
+  submitBtn.innerText = "⏳ Submitting...";
 
   const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
 
-  const now = new Date();
-  const date = now.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
-  const time = now.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
+  try {
 
-  data.date = date;
-  data.time = time;
+    const res = await fetch(scriptURL, {
+      method: "POST",
+      body: JSON.stringify(data)
+    });
 
-  fetch(scriptURL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  })
-  .then(res => res.json())
-  .then(res => {
+    const result = await res.json();
+    const requestID = result.request_id;
 
-    const requestID = res.request_id;
+    const now = new Date();
+    const date = now.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
+    const time = now.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
 
-    const message = `📦 ${data.type} Request
+    // WhatsApp message store (but NOT open)
+    lastMessage = `📦 ${data.type} Request
 
 Request ID: ${requestID}
 Name: ${data.name}
@@ -159,15 +174,35 @@ Exchange: ${data.exchange_product || "N/A"}
 Date: ${date}
 Time: ${time}`;
 
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+    // Hide form
+    form.style.display = "none";
 
-    msg.innerText = "✅ Submitted Successfully!";
-    form.reset();
+    // Show success
+    successBox.style.display = "block";
+    successBox.innerHTML = `
+      <p><b>✅ Request Submitted Successfully</b></p>
+      <p><b>Request ID:</b> ${requestID}</p>
+      <p>Date: ${date} | Time: ${time}</p>
 
-    setMode('exchange'); // reset mode
-  });
+      <p>Our team will contact you as soon as possible.</p>
+      <p>If needed, you can share this request on WhatsApp.</p>
+
+      <button class="whatsapp-btn" onclick="shareWhatsApp()">Share on WhatsApp</button>
+    `;
+
+  } catch (err) {
+    alert("❌ Error submitting form");
+    submitBtn.disabled = false;
+    submitBtn.innerText = "Submit Request";
+  }
+
 });
+
+function shareWhatsApp(){
+  const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lastMessage)}`;
+  window.open(url, "_blank");
+}
+
 </script>
 
 </body>
