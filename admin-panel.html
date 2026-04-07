@@ -5,12 +5,21 @@
 
 <style>
 body {font-family:Arial;background:#f5f5f5;}
-.container{max-width:1100px;margin:20px auto;background:white;padding:15px;border-radius:10px;}
-.tabs{text-align:center;margin-bottom:15px;}
+.container{max-width:1200px;margin:20px auto;background:white;padding:15px;border-radius:10px;}
+.tabs{text-align:center;margin-bottom:10px;}
 .tabs button{padding:8px 15px;margin:5px;border:none;background:#ddd;cursor:pointer;}
 .tabs .active{background:#000;color:#fff;}
+
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th,td{border:1px solid #ddd;padding:7px;text-align:center;}
+
+.apply-btn{background:#000;color:#fff;border:none;padding:4px 8px;}
+.undo-btn{background:#ff9800;color:#fff;border:none;padding:4px 8px;}
+
+#loading{text-align:center;font-weight:bold;margin:10px;}
+#toast{position:fixed;bottom:20px;right:20px;background:#000;color:#fff;padding:10px;border-radius:5px;display:none;}
+
+iframe{width:100%;height:500px;border:none;margin-top:15px;}
 </style>
 
 </head>
@@ -20,97 +29,152 @@ th,td{border:1px solid #ddd;padding:7px;text-align:center;}
 
 <h2>Admin Panel</h2>
 
+<!-- DASHBOARD -->
+<div style="display:flex;justify-content:center;gap:15px;margin-bottom:10px;">
+  <div style="background:#000;color:#fff;padding:10px;border-radius:6px;">Today: <span id="todayCount">0</span></div>
+  <div style="background:#333;color:#fff;padding:10px;border-radius:6px;">Total: <span id="totalCount">0</span></div>
+  <button onclick="openWhatsApp()">WhatsApp</button>
+</div>
+
+<!-- TABS -->
 <div class="tabs">
   <button onclick="setTab('return')" id="returnTab" class="active">Return</button>
   <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
   <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
   <button onclick="setTab('done')" id="doneTab">Done</button>
+  <button onclick="exportCSV()">📥 Export</button>
 </div>
+
+<!-- SEARCH -->
+<div style="text-align:center;">
+  <input id="searchBox" placeholder="Search..." onkeyup="renderTable()" style="width:60%;padding:8px;">
+</div>
+
+<div id="loading">⏳ Loading...</div>
 
 <table id="dataTable"></table>
 
+<!-- WHATSAPP IFRAME -->
+<iframe id="whatsappFrame" style="display:none;"></iframe>
+
 </div>
+
+<div id="toast"></div>
 
 <script>
 
-const sheetURL = "https://script.google.com/macros/s/AKfycbxCrg2WbNHdMWFoEPsSAm6_VONtmuNMHArFivgjdrIPHnsfgNkVU5kepDFrnjdIgGgJ/exec";
+const sheetURL = "https://script.google.com/macros/s/AKfycbwXWhuMaDMOPhJigZvqBIJrKsQjVcEEuZ_Ge9RS0Z17jKxzCw4HWMWbMfRk-Dpmzbg/exec";
 let globalData = [];
 let currentTab = "return";
 
+function openWhatsApp(){
+  let frame = document.getElementById("whatsappFrame");
+  frame.style.display = "block";
+  frame.src = "https://web.whatsapp.com/";
+}
+
+function loadData(){
+  document.getElementById("loading").style.display="block";
+
+  fetch(sheetURL+"?mode=admin")
+  .then(res=>res.json())
+  .then(data=>{
+    globalData=data;
+    document.getElementById("loading").style.display="none";
+    calculateStats();
+    renderTable();
+  });
+}
+
+function calculateStats(){
+  let total=globalData.length;
+  let today=0;
+  let t=new Date().toLocaleDateString("en-CA");
+
+  globalData.forEach(r=>{
+    if(r.date===t) today++;
+  });
+
+  document.getElementById("totalCount").innerText=total;
+  document.getElementById("todayCount").innerText=today;
+}
+
 function setTab(tab){
-  currentTab = tab;
+  currentTab=tab;
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
   document.getElementById(tab+"Tab").classList.add("active");
   renderTable();
 }
 
-function loadData(){
-  fetch(sheetURL + "?mode=admin")
-  .then(res=>res.json())
-  .then(data=>{
-    globalData = data;
-    renderTable();
-  });
-}
-
 function renderTable(){
 
-  let html = `
-  <tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th>Mobile</th>
-    <th>Type</th>
-    <th>Status</th>
-    <th>Action</th>
-  </tr>`;
+  let search=document.getElementById("searchBox").value.toLowerCase();
+
+  let html=`<tr>
+  <th>ID</th><th>Name</th><th>Mobile</th><th>Type</th><th>Status</th><th>Action</th></tr>`;
 
   globalData.forEach((row,i)=>{
 
-    let type = (row.type||"").toLowerCase();
-    let status = (row.status||"").toLowerCase();
-    let duplicate = (row.duplicate||"").toLowerCase();
+    let type=(row.type||"").toLowerCase();
+    let status=(row.status||"").toLowerCase();
+    let duplicate=(row.duplicate||"").toLowerCase();
+
+    let text=(row.name+row.mobile+row.order_id+row.request_id).toLowerCase();
+    if(search && !text.includes(search)) return;
 
     let show=false;
-
     if(currentTab==="return" && type==="return" && duplicate!=="yes" && status!=="done") show=true;
     if(currentTab==="exchange" && type==="exchange" && duplicate!=="yes" && status!=="done") show=true;
     if(currentTab==="duplicate" && duplicate==="yes") show=true;
     if(currentTab==="done" && status==="done") show=true;
 
-    if(show){
-      html += `<tr>
-        <td>${row.request_id}</td>
-        <td>${row.name}</td>
-        <td>${row.mobile}</td>
-        <td>${row.type}</td>
-        <td>${row.status}</td>
-        <td>
-          <select onchange="handleAction(${i}, this.value); this.value=''">
-            <option value="">Select</option>
-            <option value="duplicate">Duplicate 🔁</option>
-            <option value="pickup">Pickup Generated 🚚</option>
-            <option value="msg">Send Msg 📩</option>
-            <option value="done">Done ✅</option>
-          </select>
-        </td>
+    if(!show) return;
+
+    if(currentTab==="duplicate"){
+      html+=`<tr>
+      <td>${row.request_id}</td>
+      <td>${row.name}</td>
+      <td>${row.mobile}</td>
+      <td>${row.type}</td>
+      <td>${row.status}</td>
+      <td><button class="undo-btn" onclick="undo('${row.request_id}')">Undo</button></td>
+      </tr>`;
+    } else {
+      html+=`<tr>
+      <td>${row.request_id}</td>
+      <td>${row.name}</td>
+      <td>${row.mobile}</td>
+      <td>${row.type}</td>
+      <td>${row.status}</td>
+      <td>
+        <select id="a_${i}">
+          <option value="">Select</option>
+          <option value="duplicate">Duplicate 🔁</option>
+          <option value="pickup">Pickup 🚚</option>
+          <option value="msg">Msg 📩</option>
+          <option value="done">Done ✅</option>
+        </select>
+        <button class="apply-btn" onclick="apply(${i})">✔</button>
+      </td>
       </tr>`;
     }
 
   });
 
-  document.getElementById("dataTable").innerHTML = html;
+  document.getElementById("dataTable").innerHTML=html;
 }
 
-function handleAction(i,action){
+function apply(i){
 
-  let row = globalData[i];
+  let row=globalData[i];
+  let action=document.getElementById("a_"+i).value;
+
+  if(!action) return showToast("Select action");
+
+  if(!confirm("Are you sure?")) return;
 
   if(action==="msg"){
-    let msg=`Hello ${row.name}
-Request ID: ${row.request_id}
-Status: ${row.status}`;
-    window.open(`https://wa.me/91${row.mobile}?text=${encodeURIComponent(msg)}`);
+    window.open(`https://wa.me/91${row.mobile}`);
     return;
   }
 
@@ -121,12 +185,48 @@ Status: ${row.status}`;
 
   fetch(sheetURL,{
     method:"POST",
-    body: JSON.stringify({
+    body:JSON.stringify({
       mode:"updateStatus",
-      request_id: row.request_id,
-      status: status
+      request_id:row.request_id,
+      status:status
     })
-  }).then(()=>loadData());
+  }).then(()=>{
+    showToast("Updated");
+    loadData();
+  });
+}
+
+function undo(id){
+  fetch(sheetURL,{
+    method:"POST",
+    body:JSON.stringify({
+      mode:"updateStatus",
+      request_id:id,
+      status:"UNDO_DUPLICATE"
+    })
+  }).then(()=>{
+    showToast("Restored");
+    loadData();
+  });
+}
+
+function exportCSV(){
+  let csv=["ID,Name,Mobile,Type,Status"];
+  globalData.forEach(r=>{
+    csv.push(`${r.request_id},${r.name},${r.mobile},${r.type},${r.status}`);
+  });
+  let blob=new Blob([csv.join("\n")]);
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="data.csv";
+  a.click();
+}
+
+function showToast(msg){
+  let t=document.getElementById("toast");
+  t.innerText=msg;
+  t.style.display="block";
+  setTimeout(()=>t.style.display="none",2000);
 }
 
 loadData();
