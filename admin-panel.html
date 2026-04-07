@@ -60,7 +60,6 @@ button.action {
 <div class="tabs">
   <button onclick="setTab('return')" id="returnTab" class="active">Return</button>
   <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
-  <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
   <button onclick="setTab('done')" id="doneTab">Done</button>
 
   <button onclick="loadData()">🔄</button>
@@ -73,7 +72,8 @@ button.action {
 </div>
 
 <script>
-const sheetURL = "https://script.google.com/macros/s/AKfycbxRfGkQlautYe5s0d5QXEFZ_vRl9fRT0nQorcZqMaIstn7myJMICCV7S3PqD4SdDwkL/exec";
+
+const sheetURL = "https://script.google.com/macros/s/AKfycbxRfGkQlautYe5s0d5QXEFZ_vRl9fRT0nQorcZqMaIstn7myJMICCV7S3PqD4SdDwkL/exec?mode=admin"; // ⚠️ IMPORTANT
 let globalData = [];
 let currentTab = "return";
 
@@ -109,24 +109,22 @@ function renderTable(){
 
   globalData.forEach((row,index)=>{
 
-    let type = (row.Type || "").toLowerCase();
-    let status = (row.Status || "").toLowerCase();
-    let duplicate = (row.Duplicate || "").toLowerCase();
+    let type = (row.type || "").toLowerCase();
+    let status = (row.status || "").toLowerCase();
 
     let show = false;
 
-    if(currentTab==="return" && type==="return" && duplicate!=="yes" && status!=="done") show=true;
-    if(currentTab==="exchange" && type==="exchange" && duplicate!=="yes" && status!=="done") show=true;
-    if(currentTab==="duplicate" && duplicate==="yes") show=true;
+    if(currentTab==="return" && type==="return" && status!=="done") show=true;
+    if(currentTab==="exchange" && type==="exchange" && status!=="done") show=true;
     if(currentTab==="done" && status==="done") show=true;
 
     if(show){
       html += `<tr>
-        <td>${row["Request No"]||""}</td>
-        <td>${row.Name||""}</td>
-        <td>${row.Mobile||""}</td>
-        <td>${row.Type||""}</td>
-        <td>${row.Status||""}</td>
+        <td>${row.request_id||""}</td>
+        <td>${row.name||""}</td>
+        <td>${row.mobile||""}</td>
+        <td>${row.type||""}</td>
+        <td>${row.status||""}</td>
         <td>
           <button class="action" onclick="sendWhatsApp(${index})">Msg</button>
         </td>
@@ -141,11 +139,11 @@ function renderTable(){
 function sendWhatsApp(i){
   let r = globalData[i];
 
-  let msg = `Hello ${r.Name}
-Request ID: ${r["Request No"]}
-Status: ${r.Status}`;
+  let msg = `Hello ${r.name}
+Request ID: ${r.request_id}
+Status: ${r.status}`;
 
-  window.open(`https://wa.me/91${r.Mobile}?text=${encodeURIComponent(msg)}`);
+  window.open(`https://wa.me/91${r.mobile}?text=${encodeURIComponent(msg)}`);
 }
 
 function openForm(){
@@ -176,6 +174,7 @@ function exportCSV(){
 }
 
 loadData();
+
 </script>
 
 </body>
