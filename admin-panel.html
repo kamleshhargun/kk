@@ -4,47 +4,13 @@
 <title>Admin Panel</title>
 
 <style>
-body { font-family: Arial; background:#f5f5f5; }
-
-.container {
-  max-width:1100px;
-  margin:20px auto;
-  background:white;
-  padding:15px;
-  border-radius:10px;
-  box-shadow:0 4px 15px rgba(0,0,0,0.1);
-}
-
-h2{text-align:center;}
-
+body {font-family:Arial;background:#f5f5f5;}
+.container{max-width:1100px;margin:20px auto;background:white;padding:15px;border-radius:10px;}
 .tabs{text-align:center;margin-bottom:15px;}
-.tabs button{
-  padding:8px 15px;
-  margin:5px;
-  border:none;
-  border-radius:5px;
-  cursor:pointer;
-  background:#e0e0e0;
-}
-.tabs button.active{
-  background:#000;
-  color:#fff;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
-th,td{
-  border:1px solid #ddd;
-  padding:7px;
-  text-align:center;
-}
-
-select{
-  padding:4px;
-}
+.tabs button{padding:8px 15px;margin:5px;border:none;background:#ddd;cursor:pointer;}
+.tabs .active{background:#000;color:#fff;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{border:1px solid #ddd;padding:7px;text-align:center;}
 </style>
 
 </head>
@@ -59,7 +25,6 @@ select{
   <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
   <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
   <button onclick="setTab('done')" id="doneTab">Done</button>
-  <button onclick="loadData()">🔄</button>
 </div>
 
 <table id="dataTable"></table>
@@ -68,16 +33,14 @@ select{
 
 <script>
 
-const sheetURL = "https://script.google.com/macros/s/AKfycbxCrg2WbNHdMWFoEPsSAm6_VONtmuNMHArFivgjdrIPHnsfgNkVU5kepDFrnjdIgGgJ/exec"; // ⚠️ same script
+const sheetURL = "https://script.google.com/macros/s/AKfycbxCrg2WbNHdMWFoEPsSAm6_VONtmuNMHArFivgjdrIPHnsfgNkVU5kepDFrnjdIgGgJ/exec";
 let globalData = [];
 let currentTab = "return";
 
 function setTab(tab){
   currentTab = tab;
-
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
   document.getElementById(tab+"Tab").classList.add("active");
-
   renderTable();
 }
 
@@ -90,22 +53,11 @@ function loadData(){
   });
 }
 
-function formatDateTime(dateStr){
-  let d = new Date(dateStr);
-  if(isNaN(d)) return {date:"",time:""};
-  return {
-    date: d.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata"}),
-    time: d.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata"})
-  };
-}
-
 function renderTable(){
 
   let html = `
   <tr>
-    <th>Date</th>
-    <th>Time</th>
-    <th>Request</th>
+    <th>ID</th>
     <th>Name</th>
     <th>Mobile</th>
     <th>Type</th>
@@ -127,24 +79,19 @@ function renderTable(){
     if(currentTab==="done" && status==="done") show=true;
 
     if(show){
-
-      let dt = formatDateTime(row.date);
-
       html += `<tr>
-        <td>${dt.date}</td>
-        <td>${dt.time}</td>
         <td>${row.request_id}</td>
         <td>${row.name}</td>
         <td>${row.mobile}</td>
         <td>${row.type}</td>
         <td>${row.status}</td>
         <td>
-          <select onchange="handleAction(${i}, this.value)">
+          <select onchange="handleAction(${i}, this.value); this.value=''">
             <option value="">Select</option>
-            <option value="msg">Send Msg</option>
-            <option value="done">Mark Done</option>
-            <option value="pickup">Pickup Generated</option>
-            <option value="duplicate">Mark Duplicate</option>
+            <option value="duplicate">Duplicate 🔁</option>
+            <option value="pickup">Pickup Generated 🚚</option>
+            <option value="msg">Send Msg 📩</option>
+            <option value="done">Done ✅</option>
           </select>
         </td>
       </tr>`;
@@ -160,36 +107,26 @@ function handleAction(i,action){
   let row = globalData[i];
 
   if(action==="msg"){
-    let msg = `Hello ${row.name}
+    let msg=`Hello ${row.name}
 Request ID: ${row.request_id}
 Status: ${row.status}`;
     window.open(`https://wa.me/91${row.mobile}?text=${encodeURIComponent(msg)}`);
+    return;
   }
 
-  if(action==="done"){
-    updateBackend(row.request_id,"GREEN");
-  }
-
-  if(action==="pickup"){
-    updateBackend(row.request_id,"YELLOW");
-  }
-
-  if(action==="duplicate"){
-    updateBackend(row.request_id,"DUPLICATE");
-  }
-}
-
-function updateBackend(id,status){
+  let status="";
+  if(action==="done") status="GREEN";
+  if(action==="pickup") status="YELLOW";
+  if(action==="duplicate") status="DUPLICATE";
 
   fetch(sheetURL,{
     method:"POST",
     body: JSON.stringify({
       mode:"updateStatus",
-      request_id:id,
-      status:status
+      request_id: row.request_id,
+      status: status
     })
-  })
-  .then(()=>loadData());
+  }).then(()=>loadData());
 }
 
 loadData();
