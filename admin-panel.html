@@ -176,12 +176,11 @@ th, td {
 </div>
 
 <!-- Tabs -->
-<div class="tabs">
-  <button onclick="setTab('return')" id="returnTab" class="active">Return</button>
-  <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
-  <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
-  <button onclick="setTab('done')" id="doneTab">Done</button>
-  <button onclick="exportCSV()">📥 Export</button>
+<div class="stats">
+  <div class="stat-box">Return <span id="returnCount">0</span></div>
+  <div class="stat-box">Exchange <span id="exchangeCount">0</span></div>
+  <div class="stat-box">Duplicate <span id="duplicateCount">0</span></div>
+  <div class="stat-box">Done <span id="doneCount">0</span></div>
 </div>
 
 <div style="text-align:center;">
