@@ -4,25 +4,21 @@
 <title>Admin Panel</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #f5f5f5;
-}
-.container {
-  max-width: 1100px;
-  margin: 20px auto;
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-h2 { text-align:center; }
+body { font-family: Arial; background:#f5f5f5; }
 
-.tabs {
-  text-align:center;
-  margin-bottom:15px;
+.container {
+  max-width:1100px;
+  margin:20px auto;
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
 }
-.tabs button {
+
+h2{text-align:center;}
+
+.tabs{text-align:center;margin-bottom:15px;}
+.tabs button{
   padding:8px 15px;
   margin:5px;
   border:none;
@@ -30,26 +26,24 @@ h2 { text-align:center; }
   cursor:pointer;
   background:#e0e0e0;
 }
-.tabs button.active {
+.tabs button.active{
   background:#000;
-  color:white;
+  color:#fff;
 }
 
-table {
+table{
   width:100%;
-  border-collapse: collapse;
-  font-size: 13px;
+  border-collapse:collapse;
+  font-size:13px;
 }
-th, td {
+th,td{
   border:1px solid #ddd;
   padding:7px;
   text-align:center;
 }
 
-button.action {
-  padding:5px 8px;
-  margin:2px;
-  cursor:pointer;
+select{
+  padding:4px;
 }
 </style>
 
@@ -63,8 +57,8 @@ button.action {
 <div class="tabs">
   <button onclick="setTab('return')" id="returnTab" class="active">Return</button>
   <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
+  <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
   <button onclick="setTab('done')" id="doneTab">Done</button>
-
   <button onclick="loadData()">🔄</button>
 </div>
 
@@ -74,8 +68,7 @@ button.action {
 
 <script>
 
-const sheetURL = "https://script.google.com/macros/s/AKfycbxCrg2WbNHdMWFoEPsSAm6_VONtmuNMHArFivgjdrIPHnsfgNkVU5kepDFrnjdIgGgJ/exec?mode=admin";
-
+const sheetURL = "https://script.google.com/macros/s/AKfycbxCrg2WbNHdMWFoEPsSAm6_VONtmuNMHArFivgjdrIPHnsfgNkVU5kepDFrnjdIgGgJ/exec"; // ⚠️ same script
 let globalData = [];
 let currentTab = "return";
 
@@ -89,79 +82,70 @@ function setTab(tab){
 }
 
 function loadData(){
-  fetch(sheetURL)
-  .then(res => res.json())
+  fetch(sheetURL + "?mode=admin")
+  .then(res=>res.json())
   .then(data=>{
     globalData = data;
     renderTable();
-  })
-  .catch(()=>{
-    alert("❌ Data load error");
   });
 }
-function formatDateTime(dateStr) {
-  if (!dateStr) return "";
 
+function formatDateTime(dateStr){
   let d = new Date(dateStr);
-
-  if (isNaN(d)) return "";
-
-  let date = d.toLocaleDateString("en-IN", {
-    timeZone: "Asia/Kolkata"
-  });
-
-  let time = d.toLocaleTimeString("en-IN", {
-    timeZone: "Asia/Kolkata"
-  });
-
-  return { date, time };
+  if(isNaN(d)) return {date:"",time:""};
+  return {
+    date: d.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata"}),
+    time: d.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata"})
+  };
 }
-function renderTable(){
 
-  if(globalData.length === 0){
-    document.getElementById("dataTable").innerHTML = "<tr><td>No Data</td></tr>";
-    return;
-  }
+function renderTable(){
 
   let html = `
   <tr>
     <th>Date</th>
     <th>Time</th>
-    <th>Request No</th>
+    <th>Request</th>
     <th>Name</th>
     <th>Mobile</th>
-    <th>Email</th>
-    <th>Order ID</th>
     <th>Type</th>
     <th>Status</th>
     <th>Action</th>
   </tr>`;
 
-  globalData.forEach((row,index)=>{
+  globalData.forEach((row,i)=>{
 
-    let type = (row.type || "").toLowerCase().trim();
-    let status = (row.status || "").toLowerCase().trim();
+    let type = (row.type||"").toLowerCase();
+    let status = (row.status||"").toLowerCase();
+    let duplicate = (row.duplicate||"").toLowerCase();
 
-    let show = false;
+    let show=false;
 
-    // ✅ STRICT FILTER (NO MIX)
-    if(currentTab === "return" && type === "return" && status !== "done") show = true;
-    if(currentTab === "exchange" && type === "exchange" && status !== "done") show = true;
-    if(currentTab === "done" && status === "done") show = true;
+    if(currentTab==="return" && type==="return" && duplicate!=="yes" && status!=="done") show=true;
+    if(currentTab==="exchange" && type==="exchange" && duplicate!=="yes" && status!=="done") show=true;
+    if(currentTab==="duplicate" && duplicate==="yes") show=true;
+    if(currentTab==="done" && status==="done") show=true;
 
     if(show){
+
+      let dt = formatDateTime(row.date);
+
       html += `<tr>
         <td>${dt.date}</td>
         <td>${dt.time}</td>
-        <td>${row.request_id || ""}</td>
-        <td>${row.name || ""}</td>
-        <td>${row.mobile || ""}</td>
-        <td>${row.email || ""}</td>
-        <td>${row.order_id || ""}</td>
-        <td>${row.type || ""}</td>
-        <td>${row.status || ""}</td>
+        <td>${row.request_id}</td>
+        <td>${row.name}</td>
+        <td>${row.mobile}</td>
+        <td>${row.type}</td>
+        <td>${row.status}</td>
         <td>
-          <button class="action" onclick="sendWhatsApp(${index})">Msg</button>
+          <select onchange="handleAction(${i}, this.value)">
+            <option value="">Select</option>
+            <option value="msg">Send Msg</option>
+            <option value="done">Mark Done</option>
+            <option value="pickup">Pickup Generated</option>
+            <option value="duplicate">Mark Duplicate</option>
+          </select>
         </td>
       </tr>`;
     }
@@ -171,14 +155,41 @@ function renderTable(){
   document.getElementById("dataTable").innerHTML = html;
 }
 
-function sendWhatsApp(i){
-  let r = globalData[i];
+function handleAction(i,action){
 
-  let msg = `Hello ${r.name}
-Request ID: ${r.request_id}
-Status: ${r.status}`;
+  let row = globalData[i];
 
-  window.open(`https://wa.me/91${r.mobile}?text=${encodeURIComponent(msg)}`);
+  if(action==="msg"){
+    let msg = `Hello ${row.name}
+Request ID: ${row.request_id}
+Status: ${row.status}`;
+    window.open(`https://wa.me/91${row.mobile}?text=${encodeURIComponent(msg)}`);
+  }
+
+  if(action==="done"){
+    updateBackend(row.request_id,"GREEN");
+  }
+
+  if(action==="pickup"){
+    updateBackend(row.request_id,"YELLOW");
+  }
+
+  if(action==="duplicate"){
+    updateBackend(row.request_id,"DUPLICATE");
+  }
+}
+
+function updateBackend(id,status){
+
+  fetch(sheetURL,{
+    method:"POST",
+    body: JSON.stringify({
+      mode:"updateStatus",
+      request_id:id,
+      status:status
+    })
+  })
+  .then(()=>loadData());
 }
 
 loadData();
