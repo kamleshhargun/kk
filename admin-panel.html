@@ -1,25 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Panel</title>
+<title>Gulabishehar Admin Panel</title>
 
 <style>
-body {font-family:Arial;background:#f5f5f5;}
-.container{max-width:1200px;margin:20px auto;background:white;padding:15px;border-radius:10px;}
-.tabs{text-align:center;margin-bottom:10px;}
-.tabs button{padding:8px 15px;margin:5px;border:none;background:#ddd;cursor:pointer;}
-.tabs .active{background:#000;color:#fff;}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  background: #f6f6f7;
+  margin:0;
+}
+.container {
+  max-width: 1300px;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+}
 
-table{width:100%;border-collapse:collapse;font-size:13px;}
-th,td{border:1px solid #ddd;padding:7px;text-align:center;}
+/* Title */
+h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
 
-.apply-btn{background:#000;color:#fff;border:none;padding:4px 8px;}
-.undo-btn{background:#ff9800;color:#fff;border:none;padding:4px 8px;}
+/* Dashboard */
+.stats {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:15px;
+}
+.stats div {
+  padding:8px 15px;
+  background:#000;
+  color:#fff;
+  border-radius:6px;
+  font-size:14px;
+}
 
-#loading{text-align:center;font-weight:bold;margin:10px;}
-#toast{position:fixed;bottom:20px;right:20px;background:#000;color:#fff;padding:10px;border-radius:5px;display:none;}
+/* Tabs */
+.tabs {
+  text-align:center;
+  margin-bottom:10px;
+}
+.tabs button {
+  padding:8px 15px;
+  margin:5px;
+  border:none;
+  border-radius:6px;
+  background:#e4e4e4;
+  cursor:pointer;
+}
+.tabs .active {
+  background:#000;
+  color:#fff;
+}
 
-iframe{width:100%;height:500px;border:none;margin-top:15px;}
+/* Search */
+#searchBox {
+  width:60%;
+  padding:8px;
+  border:1px solid #ddd;
+  border-radius:6px;
+  margin-bottom:10px;
+}
+
+/* Table */
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th {
+  background:#000;
+  color:#fff;
+}
+th, td {
+  border:1px solid #eee;
+  padding:8px;
+  text-align:center;
+}
+
+/* Buttons */
+.apply-btn {
+  background:#000;
+  color:#fff;
+  border:none;
+  padding:4px 8px;
+  border-radius:4px;
+  cursor:pointer;
+}
+.undo-btn {
+  background:#ff9800;
+  color:#fff;
+  border:none;
+  padding:4px 8px;
+  border-radius:4px;
+  cursor:pointer;
+}
+
+/* Loading */
+#loading {
+  text-align:center;
+  font-weight:bold;
+}
+
+/* Toast */
+#toast {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#000;
+  color:#fff;
+  padding:10px;
+  border-radius:6px;
+  display:none;
+}
 </style>
 
 </head>
@@ -27,16 +123,17 @@ iframe{width:100%;height:500px;border:none;margin-top:15px;}
 
 <div class="container">
 
-<h2>Admin Panel</h2>
+<h2>Gulabishehar Admin Panel</h2>
 
-<!-- DASHBOARD -->
-<div style="display:flex;justify-content:center;gap:15px;margin-bottom:10px;">
-  <div style="background:#000;color:#fff;padding:10px;border-radius:6px;">Today: <span id="todayCount">0</span></div>
-  <div style="background:#333;color:#fff;padding:10px;border-radius:6px;">Total: <span id="totalCount">0</span></div>
-  <button onclick="openWhatsApp()">WhatsApp</button>
+<!-- Dashboard -->
+<div class="stats">
+  <div>Return: <span id="returnCount">0</span></div>
+  <div>Exchange: <span id="exchangeCount">0</span></div>
+  <div>Duplicate: <span id="duplicateCount">0</span></div>
+  <div>Done: <span id="doneCount">0</span></div>
 </div>
 
-<!-- TABS -->
+<!-- Tabs -->
 <div class="tabs">
   <button onclick="setTab('return')" id="returnTab" class="active">Return</button>
   <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
@@ -45,17 +142,13 @@ iframe{width:100%;height:500px;border:none;margin-top:15px;}
   <button onclick="exportCSV()">📥 Export</button>
 </div>
 
-<!-- SEARCH -->
 <div style="text-align:center;">
-  <input id="searchBox" placeholder="Search..." onkeyup="renderTable()" style="width:60%;padding:8px;">
+  <input id="searchBox" placeholder="Search..." onkeyup="renderTable()">
 </div>
 
 <div id="loading">⏳ Loading...</div>
 
 <table id="dataTable"></table>
-
-<!-- WHATSAPP IFRAME -->
-<iframe id="whatsappFrame" style="display:none;"></iframe>
 
 </div>
 
@@ -64,14 +157,9 @@ iframe{width:100%;height:500px;border:none;margin-top:15px;}
 <script>
 
 const sheetURL = "https://script.google.com/macros/s/AKfycbwXWhuMaDMOPhJigZvqBIJrKsQjVcEEuZ_Ge9RS0Z17jKxzCw4HWMWbMfRk-Dpmzbg/exec";
+
 let globalData = [];
 let currentTab = "return";
-
-function openWhatsApp(){
-  let frame = document.getElementById("whatsappFrame");
-  frame.style.display = "block";
-  frame.src = "https://web.whatsapp.com/";
-}
 
 function loadData(){
   document.getElementById("loading").style.display="block";
@@ -87,16 +175,22 @@ function loadData(){
 }
 
 function calculateStats(){
-  let total=globalData.length;
-  let today=0;
-  let t=new Date().toLocaleDateString("en-CA");
+  let r=0,e=0,d=0,done=0;
 
-  globalData.forEach(r=>{
-    if(r.date===t) today++;
+  globalData.forEach(row=>{
+    let type=(row.type||"").toLowerCase();
+    let status=(row.status||"").toLowerCase();
+
+    if(type==="return" && status!=="duplicate" && status!=="done") r++;
+    if(type==="exchange" && status!=="duplicate" && status!=="done") e++;
+    if(status==="duplicate") d++;
+    if(status==="done") done++;
   });
 
-  document.getElementById("totalCount").innerText=total;
-  document.getElementById("todayCount").innerText=today;
+  document.getElementById("returnCount").innerText=r;
+  document.getElementById("exchangeCount").innerText=e;
+  document.getElementById("duplicateCount").innerText=d;
+  document.getElementById("doneCount").innerText=done;
 }
 
 function setTab(tab){
@@ -110,54 +204,54 @@ function renderTable(){
 
   let search=document.getElementById("searchBox").value.toLowerCase();
 
-  let html=`<tr>
-  <th>ID</th><th>Name</th><th>Mobile</th><th>Type</th><th>Status</th><th>Action</th></tr>`;
+  let html="<tr>";
+
+  // dynamic headers
+  if(globalData.length>0){
+    Object.keys(globalData[0]).forEach(h=>{
+      html+=`<th>${h}</th>`;
+    });
+    html+="<th>Action</th></tr>";
+  }
 
   globalData.forEach((row,i)=>{
 
-    let type=(row.type||"").toLowerCase();
-    let status=(row.status||"").toLowerCase();
-    let duplicate=(row.duplicate||"").toLowerCase();
-
-    let text=(row.name+row.mobile+row.order_id+row.request_id).toLowerCase();
+    let text=Object.values(row).join(" ").toLowerCase();
     if(search && !text.includes(search)) return;
 
+    let type=(row.type||"").toLowerCase();
+    let status=(row.status||"").toLowerCase();
+
     let show=false;
-    if(currentTab==="return" && type==="return" && duplicate!=="yes" && status!=="done") show=true;
-    if(currentTab==="exchange" && type==="exchange" && duplicate!=="yes" && status!=="done") show=true;
-    if(currentTab==="duplicate" && duplicate==="yes") show=true;
+    if(currentTab==="return" && type==="return" && status!=="duplicate" && status!=="done") show=true;
+    if(currentTab==="exchange" && type==="exchange" && status!=="duplicate" && status!=="done") show=true;
+    if(currentTab==="duplicate" && status==="duplicate") show=true;
     if(currentTab==="done" && status==="done") show=true;
 
     if(!show) return;
 
-    if(currentTab==="duplicate"){
-      html+=`<tr>
-      <td>${row.request_id}</td>
-      <td>${row.name}</td>
-      <td>${row.mobile}</td>
-      <td>${row.type}</td>
-      <td>${row.status}</td>
-      <td><button class="undo-btn" onclick="undo('${row.request_id}')">Undo</button></td>
-      </tr>`;
+    html+="<tr>";
+
+    Object.values(row).forEach(v=>{
+      html+=`<td>${v}</td>`;
+    });
+
+    // actions
+    if(currentTab==="duplicate" || currentTab==="done"){
+      html+=`<td><button class="undo-btn" onclick="undo('${row.request_id}')">Undo</button></td>`;
     } else {
-      html+=`<tr>
-      <td>${row.request_id}</td>
-      <td>${row.name}</td>
-      <td>${row.mobile}</td>
-      <td>${row.type}</td>
-      <td>${row.status}</td>
-      <td>
+      html+=`<td>
         <select id="a_${i}">
           <option value="">Select</option>
           <option value="duplicate">Duplicate 🔁</option>
           <option value="pickup">Pickup 🚚</option>
-          <option value="msg">Msg 📩</option>
           <option value="done">Done ✅</option>
         </select>
         <button class="apply-btn" onclick="apply(${i})">✔</button>
-      </td>
-      </tr>`;
+      </td>`;
     }
+
+    html+="</tr>";
 
   });
 
@@ -172,11 +266,6 @@ function apply(i){
   if(!action) return showToast("Select action");
 
   if(!confirm("Are you sure?")) return;
-
-  if(action==="msg"){
-    window.open(`https://wa.me/91${row.mobile}`);
-    return;
-  }
 
   let status="";
   if(action==="done") status="GREEN";
@@ -197,6 +286,9 @@ function apply(i){
 }
 
 function undo(id){
+
+  if(!confirm("Undo this action?")) return;
+
   fetch(sheetURL,{
     method:"POST",
     body:JSON.stringify({
@@ -211,10 +303,16 @@ function undo(id){
 }
 
 function exportCSV(){
-  let csv=["ID,Name,Mobile,Type,Status"];
-  globalData.forEach(r=>{
-    csv.push(`${r.request_id},${r.name},${r.mobile},${r.type},${r.status}`);
+
+  let csv=[];
+  let headers=Object.keys(globalData[0]||{});
+  csv.push(headers.join(","));
+
+  globalData.forEach(row=>{
+    let values=headers.map(h=>`"${row[h]||""}"`);
+    csv.push(values.join(","));
   });
+
   let blob=new Blob([csv.join("\n")]);
   let a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
