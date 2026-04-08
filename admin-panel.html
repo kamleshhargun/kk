@@ -166,26 +166,55 @@ status:action.toUpperCase()
 function render(){
 
 let search=document.getElementById("searchBox").value.toLowerCase();
-
-let html="<tr><th>ID</th><th>Name</th><th>Mobile</th><th>Status</th><th>Action</th></tr>";
+let html="<tr>";
 let mobile="";
+
+/* ✅ DYNAMIC HEADERS */
+if(data.length>0){
+Object.keys(data[0]).forEach(h=>{
+html+=`<th>${h.replaceAll("_"," ")}</th>`;
+});
+html+="<th>Action</th></tr>";
+}
 
 data.forEach((row,i)=>{
 
 let txt=JSON.stringify(row).toLowerCase();
 if(search && !txt.includes(search)) return;
 
+let type=row.type;
+let status=row.status;
+
 let show=false;
 
-if(tab==="return" && row.type==="return" && row.status==="pending") show=true;
-if(tab==="exchange" && row.type==="exchange" && row.status==="pending") show=true;
-if(tab==="duplicate" && row.status==="duplicate") show=true;
-if(tab==="done" && row.status==="done") show=true;
+if(tab==="return" && type==="return" && status==="pending") show=true;
+if(tab==="exchange" && type==="exchange" && status==="pending") show=true;
+if(tab==="duplicate" && status==="duplicate") show=true;
+if(tab==="done" && status==="done") show=true;
 
 if(!show) return;
 
-let actionHTML=`
-<select id="a_${i}">
+html+="<tr>";
+
+/* ✅ ALL VALUES */
+Object.entries(row).forEach(([k,v])=>{
+
+if(k==="date"){
+let d=new Date(v);
+v=isNaN(d)?v:d.toLocaleDateString("en-IN");
+}
+
+if(k==="time"){
+let t=new Date(v);
+v=isNaN(t)?v:t.toLocaleTimeString("en-IN",{hour:'2-digit',minute:'2-digit'});
+}
+
+html+=`<td>${v}</td>`;
+});
+
+/* ACTION */
+let actionHTML=` <select id="a_${i}">
+
 <option value="">Select</option>
 <option value="pickup">Pickup</option>
 <option value="duplicate">Duplicate</option>
@@ -194,19 +223,18 @@ let actionHTML=`
 <button onclick="apply(${i})">✔</button>
 `;
 
-html+=`<tr>
-<td>${row.request_id}</td>
-<td>${row.name}</td>
-<td>${row.mobile}</td>
-<td>${row.status}</td>
-<td>${actionHTML}</td>
-</tr>`;
+html+=`<td>${actionHTML}</td></tr>`;
 
+/* MOBILE CARD */
 mobile+=`
+
 <div class="mobile-card">
 <b>${row.name}</b>
 <div class="mobile-row">${row.mobile}</div>
 <div class="mobile-row">Order: ${row.order_id}</div>
+<div class="mobile-row">${row.return_product}</div>
+<div class="mobile-row">${row.exchange_product || "-"}</div>
+<div class="mobile-row">${row.description}</div>
 <div class="mobile-row">${row.type} | ${row.status}</div>
 <div class="mobile-row">${actionHTML}</div>
 </div>
@@ -217,8 +245,6 @@ mobile+=`
 document.getElementById("table").innerHTML=html;
 document.getElementById("mobileView").innerHTML=mobile;
 }
-
-loadData();
 
 </script>
 
