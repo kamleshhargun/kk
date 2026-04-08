@@ -5,40 +5,48 @@
 <title>Gulabishehar Admin Panel</title>
 
 <style>
-body { font-family: Arial; background:#f6f6f6; }
-.container { max-width:1200px; margin:25px auto; background:#fff; padding:20px; border-radius:14px; }
-h2{text-align:center}
+body{font-family:Arial;background:#f6f6f6}
+.container{max-width:1200px;margin:20px auto;background:#fff;padding:20px;border-radius:12px}
 
-/* header */
-.header-stats{text-align:center;margin-bottom:15px}
-.header-stats span{margin:0 10px;font-weight:bold}
+/* HEADER */
+.header{text-align:center}
+.header h3{font-size:15px;margin-bottom:5px}
 
-/* tabs */
-.tabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.tabs button{padding:8px 14px;border:1px solid #ddd;border-radius:6px;background:#f1f1f1;cursor:pointer}
-.tabs button.active{background:#000;color:#fff}
+/* STATS */
+.stats span{margin:0 10px;font-weight:bold}
 
-/* search */
-.search-container{display:flex;justify-content:flex-end;margin-bottom:10px}
-.search-box{position:relative}
-#searchBox{width:220px;padding:8px 30px 8px 10px;border-radius:6px;border:1px solid #ddd}
-.clear-btn{position:absolute;right:8px;top:6px;cursor:pointer}
+/* TABS */
+.tabs{display:flex;justify-content:center;gap:10px;margin:10px 0;flex-wrap:wrap}
+.tabs button{padding:8px 12px;border:1px solid #ccc;cursor:pointer;border-radius:6px}
+.tabs .active{background:#000;color:#fff}
 
-/* table */
-table{width:100%;border-collapse:collapse;font-size:13px}
+/* SEARCH */
+.search{display:flex;justify-content:flex-end;margin-bottom:10px}
+.search input{padding:6px;width:200px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:6px;text-align:center}
 th{background:#000;color:#fff}
-th,td{border:1px solid #eee;padding:8px;text-align:center}
 
-/* btn */
-.apply-btn{background:#000;color:#fff;border:none;padding:5px 10px;border-radius:5px}
-.undo-btn{background:#ff9800;color:#fff;border:none;padding:5px 10px;border-radius:5px}
-
-/* mobile */
+/* MOBILE CARD */
 .mobile-card{display:none}
+
 @media(max-width:768px){
 table{display:none}
-.mobile-card{display:block;border:1px solid #eee;border-radius:10px;padding:12px;margin-bottom:10px}
+.mobile-card{
+display:block;
+border:1px solid #eee;
+border-radius:10px;
+padding:12px;
+margin-bottom:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.05)
 }
+.mobile-card b{font-size:14px}
+.mobile-row{margin:4px 0;font-size:13px}
+}
+
+button{cursor:pointer}
 </style>
 
 </head>
@@ -47,13 +55,13 @@ table{display:none}
 
 <div class="container">
 
-<h2>Gulabishehar Admin Panel</h2>
-
-<div class="header-stats">
+<div class="header">
 <h3>Requests Received</h3>
-<span>Today: <span id="todayCount">0</span></span>
-<span>Yesterday: <span id="yesterdayCount">0</span></span>
-<span>Total: <span id="totalCount">0</span></span>
+<div class="stats">
+Today: <span id="today">0</span> |
+Yesterday: <span id="yesterday">0</span> |
+Total: <span id="total">0</span>
+</div>
 </div>
 
 <div class="tabs">
@@ -61,88 +69,64 @@ table{display:none}
 <button onclick="setTab('exchange')" id="exchangeTab">Exchange (0)</button>
 <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate (0)</button>
 <button onclick="setTab('done')" id="doneTab">Done (0)</button>
-
-<button onclick="refreshData()">🔄</button>
-
-<select onchange="exportCSV(this.value)">
-<option value="">📥 Export</option>
-<option value="all">All</option>
-<option value="return">Return</option>
-<option value="exchange">Exchange</option>
-<option value="duplicate">Duplicate</option>
-<option value="done">Done</option>
-</select>
+<button onclick="loadData()">🔄</button>
 </div>
 
-<div class="search-container">
-<div class="search-box">
-<input id="searchBox" placeholder="Search...">
-<span class="clear-btn" onclick="clearSearch()">✖</span>
-</div>
+<div class="search">
+<input id="searchBox" placeholder="Search..." onkeyup="render()">
 </div>
 
-<table id="dataTable"></table>
+<table id="table"></table>
 <div id="mobileView"></div>
 
 </div>
 
 <script>
 
-const sheetURL="https://script.google.com/macros/s/AKfycbzAtBQ85A7OYN3S35XiPiCSbXqZI3SrDu9lVdX3NDUGgacTQ2regqhfcAylxOXwrFTd/exec";
+const URL="https://script.google.com/macros/s/AKfycbzAtBQ85A7OYN3S35XiPiCSbXqZI3SrDu9lVdX3NDUGgacTQ2regqhfcAylxOXwrFTd/exec";
 
-let globalData=[];
-let currentTab="return";
+let data=[];
+let tab="return";
 
-/* FIX IST DATE */
-function getISTDate(offset=0){
-let d=new Date();
-d.setHours(d.getHours()+5);
-d.setMinutes(d.getMinutes()+30);
-d.setDate(d.getDate()+offset);
-return d.toISOString().split("T")[0];
-}
-
-/* LOAD FAST */
+/* LOAD */
 function loadData(){
-fetch(sheetURL+"?mode=admin")
+fetch(URL+"?mode=admin")
 .then(r=>r.json())
-.then(data=>{
-globalData=data;
-calculateStats();
-renderTable();
+.then(d=>{
+data=d;
+stats();
+render();
 });
 }
 
-/* FIX COUNT */
-function calculateStats(){
+/* STATS FIX */
+function stats(){
 
-let today=getISTDate(0);
-let yesterday=getISTDate(-1);
+let today=new Date().toISOString().split("T")[0];
+let yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
 
 let t=0,y=0,total=0,r=0,e=0,d=0,done=0;
 
-globalData.forEach(row=>{
-
-let date=(row.date||"").split("T")[0];
+data.forEach(row=>{
+let dt=row.date;
 let type=row.type;
-let status=row.status;
+let st=row.status;
 
 if(type==="return"||type==="exchange"){
 total++;
-if(date===today) t++;
-if(date===yesterday) y++;
+if(dt===today) t++;
+if(dt===yesterday) y++;
 }
 
-if(type==="return" && status!=="duplicate" && status!=="done") r++;
-if(type==="exchange" && status!=="duplicate" && status!=="done") e++;
-if(status==="duplicate") d++;
-if(status==="done") done++;
-
+if(type==="return"&&st==="pending") r++;
+if(type==="exchange"&&st==="pending") e++;
+if(st==="duplicate") d++;
+if(st==="done") done++;
 });
 
-document.getElementById("todayCount").innerText=t;
-document.getElementById("yesterdayCount").innerText=y;
-document.getElementById("totalCount").innerText=total;
+document.getElementById("today").innerText=t;
+document.getElementById("yesterday").innerText=y;
+document.getElementById("total").innerText=total;
 
 document.getElementById("returnTab").innerText=`Return (${r})`;
 document.getElementById("exchangeTab").innerText=`Exchange (${e})`;
@@ -151,114 +135,88 @@ document.getElementById("doneTab").innerText=`Done (${done})`;
 }
 
 /* TAB */
-function setTab(tab){
-currentTab=tab;
+function setTab(t){
+tab=t;
 document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-document.getElementById(tab+"Tab").classList.add("active");
-renderTable();
+document.getElementById(t+"Tab").classList.add("active");
+render();
 }
 
-/* SEARCH */
-document.getElementById("searchBox").addEventListener("keyup",()=>renderTable());
-function clearSearch(){document.getElementById("searchBox").value="";renderTable();}
-
-/* ACTION FIX */
+/* ACTION */
 function apply(i){
 
-let row=globalData[i];
+let row=data[i];
 let action=document.getElementById("a_"+i).value;
 
 if(!action) return alert("Select action");
 
-let status="";
-if(action==="done") status="GREEN";
-if(action==="pickup") status="YELLOW";
-if(action==="duplicate") status="DUPLICATE";
-
-fetch(sheetURL,{
+fetch(URL,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
 mode:"updateStatus",
 request_id:row.request_id,
-status:status
+status:action.toUpperCase()
 })
 })
 .then(()=>loadData());
 }
 
-/* UNDO FIX */
-function undo(id){
-fetch(sheetURL,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-mode:"updateStatus",
-request_id:id,
-status:"UNDO_DUPLICATE"
-})
-})
-.then(()=>loadData());
-}
+/* RENDER */
+function render(){
 
-/* TABLE */
-function renderTable(){
+let search=document.getElementById("searchBox").value.toLowerCase();
 
-let html="<tr>";
+let html="<tr><th>ID</th><th>Name</th><th>Mobile</th><th>Status</th><th>Action</th></tr>";
 let mobile="";
 
-if(globalData.length>0){
-Object.keys(globalData[0]).forEach(h=>html+=`<th>${h}</th>`);
-html+="<th>Action</th></tr>";
-}
+data.forEach((row,i)=>{
 
-globalData.forEach((row,i)=>{
-
-let type=row.type;
-let status=row.status;
+let txt=JSON.stringify(row).toLowerCase();
+if(search && !txt.includes(search)) return;
 
 let show=false;
-if(currentTab==="return" && type==="return" && status!=="duplicate" && status!=="done") show=true;
-if(currentTab==="exchange" && type==="exchange" && status!=="duplicate" && status!=="done") show=true;
-if(currentTab==="duplicate" && status==="duplicate") show=true;
-if(currentTab==="done" && status==="done") show=true;
+
+if(tab==="return" && row.type==="return" && row.status==="pending") show=true;
+if(tab==="exchange" && row.type==="exchange" && row.status==="pending") show=true;
+if(tab==="duplicate" && row.status==="duplicate") show=true;
+if(tab==="done" && row.status==="done") show=true;
 
 if(!show) return;
 
-html+="<tr>";
-Object.values(row).forEach(v=>html+=`<td>${v}</td>`);
-
-let action="";
-if(currentTab==="duplicate"||currentTab==="done"){
-action=`<button onclick="undo('${row.request_id}')">Undo</button>`;
-}else{
-action=`<select id="a_${i}">
+let actionHTML=`
+<select id="a_${i}">
 <option value="">Select</option>
-<option value="duplicate">Duplicate</option>
 <option value="pickup">Pickup</option>
+<option value="duplicate">Duplicate</option>
 <option value="done">Done</option>
 </select>
-<button onclick="apply(${i})">✔</button>`;
-}
+<button onclick="apply(${i})">✔</button>
+`;
 
-html+=`<td>${action}</td></tr>`;
+html+=`<tr>
+<td>${row.request_id}</td>
+<td>${row.name}</td>
+<td>${row.mobile}</td>
+<td>${row.status}</td>
+<td>${actionHTML}</td>
+</tr>`;
 
-mobile+=`<div class="mobile-card">
-<b>${row.name}</b><br>
-${row.mobile}<br>
-${row.order_id}<br>
-${row.type} | ${row.status}<br>
-${action}
-</div>`;
+mobile+=`
+<div class="mobile-card">
+<b>${row.name}</b>
+<div class="mobile-row">${row.mobile}</div>
+<div class="mobile-row">Order: ${row.order_id}</div>
+<div class="mobile-row">${row.type} | ${row.status}</div>
+<div class="mobile-row">${actionHTML}</div>
+</div>
+`;
 
 });
 
-document.getElementById("dataTable").innerHTML=html;
+document.getElementById("table").innerHTML=html;
 document.getElementById("mobileView").innerHTML=mobile;
 }
-
-/* REFRESH */
-function refreshData(){loadData();}
 
 loadData();
 
