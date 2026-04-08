@@ -1,279 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Return / Exchange Form</title>
+  <title>Exchange / Return Request</title>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
-}
-
-/* Container */
-.container {
-  max-width: 500px;
-  margin: 30px auto;
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-/* Toggle Buttons */
-.toggle-btns {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.toggle-btns button {
-  padding: 8px 16px;
-  margin: 5px;
-  border: none;
-  cursor: pointer;
-  border-radius: 6px;
-  background: #e0e0e0;
-  color: #000;
-  font-weight: 500;
-  transition: 0.3s;
-}
-
-.toggle-btns button.active {
-  background: #000;
-  color: #fff;
-}
-
-/* Inputs */
-input, textarea {
-  width: 100%;
-  padding: 11px;
-  margin: 8px 0;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-  transition: 0.2s;
-}
-
-input:focus, textarea:focus {
-  border-color: #000;
-  outline: none;
-}
-
-/* Submit Button */
-button.submit-btn {
-  width: 100%;
-  padding: 13px;
-  background: #000;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button.submit-btn:hover {
-  background: #333;
-}
-
-button.submit-btn:disabled {
-  background: #999;
-  cursor: not-allowed;
-}
-
-/* Success Box */
-.success-box {
-  display: none;
-  text-align: center;
-  padding: 18px;
-  background: #f9f9f9;
-  border-radius: 10px;
-  margin-top: 15px;
-  border: 1px solid #eee;
-}
-
-.success-box b {
-  color: #000;
-}
-
-/* WhatsApp Button */
-.whatsapp-btn {
-  margin-top: 12px;
-  padding: 11px;
-  background: #000;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.whatsapp-btn:hover {
-  background: #333;
-}
-</style>
-
+  <style>
+    body { font-family: Arial; text-align:center; }
+    input, select, textarea {
+      width: 300px;
+      padding: 10px;
+      margin: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      background: black;
+      color: white;
+      border: none;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
+<h2>Exchange / Return Request</h2>
+<p style="color:red;">₹100 will be deducted on exchange or returns</p>
 
-<h2>Return / Exchange Form</h2>
-<p style="font-size: 14px; color: red; margin-bottom: 15px; font-weight: 500; text-align: center; width: 100%;">
-  ₹100 will be deducted on returns or exchange
-</p>
-<div class="toggle-btns">
-  <button id="exchangeBtn" class="active" onclick="setMode('exchange')">Exchange</button>
-  <button id="returnBtn" onclick="setMode('return')">Return</button>
-</div>
+<form id="form">
 
-<form id="myForm">
+<input type="text" name="name" placeholder="Name" required><br>
+<input type="text" name="mobile" placeholder="Mobile" required><br>
+<input type="email" name="email" placeholder="Email"><br>
+<input type="text" name="order_id" placeholder="Order ID" required><br>
 
-<input type="hidden" name="type" id="type" value="exchange">
+<select name="type">
+  <option value="exchange" selected>Exchange</option>
+  <option value="return">Return</option>
+</select><br>
 
-<input type="text" name="name" placeholder="Customer Name" required>
-<input type="tel" name="mobile" placeholder="Mobile Number" required pattern="[0-9]{10}">
-<input type="email" name="email" placeholder="Email ID" required>
-<input type="text" name="order_id" placeholder="Order ID" required>
-<input type="text" name="return_product" placeholder="Product Name (Return)" required>
+<textarea name="reason" placeholder="Please describe your request"></textarea><br>
 
-<div id="exchangeField">
-  <input type="text" name="exchange_product" placeholder="Product Name (Exchange)">
-</div>
-
-<textarea name="description" placeholder="Reason / Description" required></textarea>
-
-<button type="submit" class="submit-btn" id="submitBtn">Submit Request</button>
+<button type="submit" id="btn">Submit</button>
 
 </form>
 
-<div class="success-box" id="successBox"></div>
-
-</div>
+<div id="success" style="display:none;"></div>
 
 <script>
+const API = "https://script.google.com/macros/s/AKfycbz4jK24JvVgOQG0gCz_Qsa--b_K8NmbA6OvHE-xjPdZmJniEdi-anfmrrYKb2KoNnhfNQ/exec";
+const ADMIN_WHATSAPP = "919216810276"; // apna number
 
-const scriptURL = "https://script.google.com/macros/s/AKfycby9imW_M-239HLQB6GAmxsPuIu3ajJSN_XvbM9_oV7uiTbX4KbCQ8yMhsw2h2eM8Fzp/exec";
-const whatsappNumber = "919216810276";
-
-const form = document.getElementById("myForm");
-const successBox = document.getElementById("successBox");
-const submitBtn = document.getElementById("submitBtn");
-
-let lastMessage = "";
-let isSubmitting = false; // 🔥 prevent double submit
-
-form.addEventListener("submit", (e) => {
+document.getElementById("form").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  // 🚫 Prevent multiple click
-  if(isSubmitting) return;
-  isSubmitting = true;
+  let btn = document.getElementById("btn");
+  btn.innerText = "Please wait...";
+  btn.disabled = true;
 
-  submitBtn.disabled = true;
-  submitBtn.innerText = "⏳ Submitting...";
+  let form = new FormData(this);
+  let data = Object.fromEntries(form.entries());
 
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
-
-  // 🔥 FAST UI (no wait)
-  form.style.display = "none";
-  successBox.style.display = "block";
-  successBox.innerHTML = `
-    <p><b>⏳ Submitting your request...</b></p>
-    <p>Please wait...</p>
-  `;
-
-  // 🚀 Send in background
-  fetch(scriptURL, {
+  let res = await fetch(API, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
     body: JSON.stringify(data)
-  })
-  .then(res => res.json())
-  .then(result => {
-
-    const requestID = result.request_id;
-
-    const now = new Date();
-    const date = now.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
-    const time = now.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
-
-    lastMessage = `📦 ${data.type} Request
-
-Request ID: ${requestID}
-Name: ${data.name}
-Mobile: ${data.mobile}
-Order ID: ${data.order_id}
-
-Return: ${data.return_product}
-Exchange: ${data.exchange_product || "N/A"}
-
-Date: ${date}
-Time: ${time}`;
-
-    // ✅ Final success replace
-    successBox.innerHTML = `
-      <p><b>✅ Request Submitted Successfully</b></p>
-      <p><b>Request ID:</b> ${requestID}</p>
-      <p>Date: ${date} | Time: ${time}</p>
-
-      <p>Our team will contact you soon.</p>
-
-      <button class="whatsapp-btn" onclick="shareWhatsApp()">Share on WhatsApp</button>
-    `;
-
-  })
-  .catch(() => {
-
-    successBox.innerHTML = `
-      <p style="color:red;"><b>❌ Failed to submit</b></p>
-      <button onclick="location.reload()">Try Again</button>
-    `;
-
-    isSubmitting = false;
   });
 
+  let json = await res.json();
+
+  // Hide form
+  document.getElementById("form").style.display = "none";
+
+  let msg = `Your request has been received successfully.
+Your Request ID is: ${json.request_id}
+
+If you want immediate action, please contact our executive via WhatsApp.`;
+
+  let wa = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+
+  document.getElementById("success").style.display = "block";
+  document.getElementById("success").innerHTML = `
+    <p>${msg}</p>
+    <a href="${wa}" target="_blank">
+      <button>Share on WhatsApp</button>
+    </a>
+  `;
 });
-
-function setMode(mode) {
-
-const typeInput = document.getElementById("type");
-const exchangeField = document.getElementById("exchangeField");
-const exchangeBtn = document.getElementById("exchangeBtn");
-const returnBtn = document.getElementById("returnBtn");
-
-typeInput.value = mode;
-
-if (mode === "return") {
-exchangeField.style.display = "none";
-exchangeBtn.classList.remove("active");
-returnBtn.classList.add("active");
-} else {
-exchangeField.style.display = "block";
-exchangeBtn.classList.add("active");
-returnBtn.classList.remove("active");
-}
-}
-window.onload = () => setMode("exchange");
-
-function shareWhatsApp(){
-const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lastMessage)}`;
-window.open(url, "_blank");
-}
-
 </script>
-
 
 </body>
 </html>
