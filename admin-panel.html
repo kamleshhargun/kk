@@ -1,251 +1,80 @@
 <!DOCTYPE html>
-
 <html>
 <head>
-<title>Gulabishehar Admin Panel</title>
+  <title>Admin Panel</title>
 
-<style>
-body{font-family:Arial;background:#f6f6f6}
-.container{max-width:1200px;margin:20px auto;background:#fff;padding:20px;border-radius:12px}
-
-/* HEADER */
-.header{text-align:center}
-.header h3{font-size:15px;margin-bottom:5px}
-
-/* STATS */
-.stats span{margin:0 10px;font-weight:bold}
-
-/* TABS */
-.tabs{display:flex;justify-content:center;gap:10px;margin:10px 0;flex-wrap:wrap}
-.tabs button{padding:8px 12px;border:1px solid #ccc;cursor:pointer;border-radius:6px}
-.tabs .active{background:#000;color:#fff}
-
-/* SEARCH */
-.search{display:flex;justify-content:flex-end;margin-bottom:10px}
-.search input{padding:6px;width:200px}
-
-/* TABLE */
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #ddd;padding:6px;text-align:center}
-th{background:#000;color:#fff}
-
-/* MOBILE CARD */
-.mobile-card{display:none}
-
-@media(max-width:768px){
-table{display:none}
-.mobile-card{
-display:block;
-border:1px solid #eee;
-border-radius:10px;
-padding:12px;
-margin-bottom:10px;
-box-shadow:0 2px 8px rgba(0,0,0,0.05)
-}
-.mobile-card b{font-size:14px}
-.mobile-row{margin:4px 0;font-size:13px}
-}
-
-button{cursor:pointer}
-</style>
-
+  <style>
+    body { font-family: Arial; background:#111; color:#fff; padding:20px; }
+    table { width:100%; border-collapse:collapse; background:#222; }
+    th, td { padding:8px; border:1px solid #444; text-align:center; }
+    button { padding:5px; margin:2px; color:#fff; border:none; cursor:pointer; }
+    .approve { background:green; }
+    .reject { background:red; }
+    .pending { background:orange; }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-
-<div class="header">
-<h3>Requests Received</h3>
-<div class="stats">
-Today: <span id="today">0</span> |
-Yesterday: <span id="yesterday">0</span> |
-Total: <span id="total">0</span>
-</div>
-</div>
-
-<div class="tabs">
-<button onclick="setTab('return')" id="returnTab" class="active">Return (0)</button>
-<button onclick="setTab('exchange')" id="exchangeTab">Exchange (0)</button>
-<button onclick="setTab('duplicate')" id="duplicateTab">Duplicate (0)</button>
-<button onclick="setTab('done')" id="doneTab">Done (0)</button>
-<button onclick="loadData()">🔄</button>
-</div>
-
-<div class="search">
-<input id="searchBox" placeholder="Search..." onkeyup="render()">
-</div>
+<h2>Dashboard</h2>
 
 <table id="table"></table>
-<div id="mobileView"></div>
-
-</div>
 
 <script>
+const API = "https://script.google.com/macros/s/AKfycbz4jK24JvVgOQG0gCz_Qsa--b_K8NmbA6OvHE-xjPdZmJniEdi-anfmrrYKb2KoNnhfNQ/exec";
 
-const URL="https://script.google.com/macros/s/AKfycby9imW_M-239HLQB6GAmxsPuIu3ajJSN_XvbM9_oV7uiTbX4KbCQ8yMhsw2h2eM8Fzp/exec";
+async function loadData() {
+  let res = await fetch(API);
+  let data = await res.json();
 
-let data=[];
-let tab="return";
+  let html = `<tr>
+<th>Date</th><th>Time</th><th>ID</th><th>Name</th><th>Mobile</th>
+<th>Email</th><th>Order</th><th>Type</th><th>Reason</th>
+<th>Status</th><th>Duplicate</th><th>Action</th>
+</tr>`;
 
-/* LOAD */
-function loadData(){
-fetch(URL+"?mode=admin")
-.then(r=>r.json())
-.then(d=>{
-data=d;
-stats();
-render();
-});
+  data.forEach(item => {
+
+    html += `
+<tr>
+<td>${item.date}</td>
+<td>${item.time}</td>
+<td>${item.request_id}</td>
+<td>${item.name}</td>
+<td>${item.mobile}</td>
+<td>${item.email}</td>
+<td>${item.order_id}</td>
+<td>${item.type}</td>
+<td>${item.reason}</td>
+
+<td>${item.status}</td>
+<td>${item.duplicate}</td>
+
+<td>
+<button class="pending" onclick="updateStatus('${item.request_id}','pending')">Pending</button>
+<button class="approve" onclick="updateStatus('${item.request_id}','pickup generated')">Pickup Generated</button>
+<button class="reject" onclick="updateStatus('${item.request_id}','done')">Done</button>
+</td>
+</tr>`;
+  });
+
+  document.getElementById("table").innerHTML = html;
 }
 
-/* STATS FIX */
-function stats(){
-
-let today=new Date().toISOString().split("T")[0];
-let yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
-
-let t=0,y=0,total=0,r=0,e=0,d=0,done=0;
-
-data.forEach(row=>{
-let dt=row.date;
-let type=row.type;
-let st=row.status;
-
-if(type==="return"||type==="exchange"){
-total++;
-if(dt===today) t++;
-if(dt===yesterday) y++;
+async function updateStatus(id, status) {
+  await fetch(API, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "update",
+      request_id: id,
+      status: status
+    })
+  });
+  loadData();
 }
 
-if(type==="return"&&st==="pending") r++;
-if(type==="exchange"&&st==="pending") e++;
-if(st==="duplicate") d++;
-if(st==="done") done++;
-});
-
-document.getElementById("today").innerText=t;
-document.getElementById("yesterday").innerText=y;
-document.getElementById("total").innerText=total;
-
-document.getElementById("returnTab").innerText=`Return (${r})`;
-document.getElementById("exchangeTab").innerText=`Exchange (${e})`;
-document.getElementById("duplicateTab").innerText=`Duplicate (${d})`;
-document.getElementById("doneTab").innerText=`Done (${done})`;
-}
-
-/* TAB */
-function setTab(t){
-tab=t;
-document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-document.getElementById(t+"Tab").classList.add("active");
-render();
-}
-
-/* ACTION */
-function apply(i){
-
-let row=data[i];
-let action=document.getElementById("a_"+i).value;
-
-if(!action) return alert("Select action");
-
-fetch(URL,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-mode:"updateStatus",
-request_id:row.request_id,
-status:action.toUpperCase()
-})
-})
-.then(()=>loadData());
-}
-
-/* RENDER */
-function render(){
-
-let search=document.getElementById("searchBox").value.toLowerCase();
-let html="<tr>";
-let mobile="";
-
-/* ✅ DYNAMIC HEADERS */
-if(data.length>0){
-Object.keys(data[0]).forEach(h=>{
-html+=`<th>${h.replaceAll("_"," ")}</th>`;
-});
-html+="<th>Action</th></tr>";
-}
-
-data.forEach((row,i)=>{
-
-let txt=JSON.stringify(row).toLowerCase();
-if(search && !txt.includes(search)) return;
-
-let type=row.type;
-let status=row.status;
-
-let show=false;
-
-if(tab==="return" && type==="return" && status==="pending") show=true;
-if(tab==="exchange" && type==="exchange" && status==="pending") show=true;
-if(tab==="duplicate" && status==="duplicate") show=true;
-if(tab==="done" && status==="done") show=true;
-
-if(!show) return;
-
-html+="<tr>";
-
-/* ✅ ALL VALUES */
-Object.entries(row).forEach(([k,v])=>{
-
-if(k==="date"){
-let d=new Date(v);
-v=isNaN(d)?v:d.toLocaleDateString("en-IN");
-}
-
-if(k==="time"){
-let t=new Date(v);
-v=isNaN(t)?v:t.toLocaleTimeString("en-IN",{hour:'2-digit',minute:'2-digit'});
-}
-
-html+=`<td>${v}</td>`;
-});
-
-/* ACTION */
-let actionHTML=` <select id="a_${i}">
-
-<option value="">Select</option>
-<option value="pickup">Pickup</option>
-<option value="duplicate">Duplicate</option>
-<option value="done">Done</option>
-</select>
-<button onclick="apply(${i})">✔</button>
-`;
-
-html+=`<td>${actionHTML}</td></tr>`;
-
-/* MOBILE CARD */
-mobile+=`
-
-<div class="mobile-card">
-<b>${row.name}</b>
-<div class="mobile-row">${row.mobile}</div>
-<div class="mobile-row">Order: ${row.order_id}</div>
-<div class="mobile-row">${row.return_product}</div>
-<div class="mobile-row">${row.exchange_product || "-"}</div>
-<div class="mobile-row">${row.description}</div>
-<div class="mobile-row">${row.type} | ${row.status}</div>
-<div class="mobile-row">${actionHTML}</div>
-</div>
-`;
-
-});
-
-document.getElementById("table").innerHTML=html;
-document.getElementById("mobileView").innerHTML=mobile;
-}
-
+loadData();
+setInterval(loadData, 5000);
 </script>
 
 </body>
