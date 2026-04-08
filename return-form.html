@@ -155,30 +155,39 @@ document.getElementById("form").addEventListener("submit", async function(e) {
   let form = new FormData(this);
   let data = Object.fromEntries(form.entries());
 
-  let res = await fetch(API, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
+  try {
+    let res = await fetch(API, {
+      method: "POST",
+      body: JSON.stringify(data)
+    });
 
-  let json = await res.json();
+    let json = await res.json();
 
-  // Hide form
-  document.getElementById("form").style.display = "none";
+    // ✅ Safe request_id handling
+    let requestId = json.request_id ? json.request_id : "N/A";
 
-  let msg = `Your request has been received successfully.
-Your Request ID is: ${json.request_id}
+    // Hide form
+    document.getElementById("form").style.display = "none";
+
+    let msg = `Your request has been received successfully.
+Your Request ID is: ${requestId}
 
 If you want immediate action, please contact our executive via WhatsApp.`;
 
-  let wa = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+    let wa = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
 
-  document.getElementById("success").style.display = "block";
-  document.getElementById("success").innerHTML = `
-    <p>${msg}</p>
-    <a href="${wa}" target="_blank">
-      <button>Share on WhatsApp</button>
-    </a>
-  `;
+    document.getElementById("success").style.display = "block";
+    document.getElementById("success").innerHTML = `
+      <p>${msg}</p>
+      <a href="${wa}" target="_blank">
+        <button>Share on WhatsApp</button>
+      </a>
+    `;
+
+  } catch (err) {
+    console.error(err);
+    alert("Error submitting form. Please try again.");
+  }
 });
 </script>
 
