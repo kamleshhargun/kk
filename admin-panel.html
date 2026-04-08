@@ -4,21 +4,120 @@
   <title>Admin Panel</title>
 
   <style>
-    body { font-family: Arial; background:#111; color:#fff; padding:20px; }
-    table { width:100%; border-collapse:collapse; background:#222; }
-    th, td { padding:8px; border:1px solid #444; text-align:center; }
-    button { padding:5px; margin:2px; color:#fff; border:none; cursor:pointer; }
-    .approve { background:green; }
-    .reject { background:red; }
-    .pending { background:orange; }
-  </style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+    background: #f6f6f7;
+    color: #202223;
+    padding: 12px;
+    margin: 0;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 20px;
+  }
+
+  /* Container for table */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px; /* allows horizontal scroll on mobile */
+  }
+
+  th {
+    background: #f1f2f4;
+    color: #6d7175;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 10px;
+    border-bottom: 1px solid #e1e3e5;
+  }
+
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #f1f2f4;
+    font-size: 13px;
+  }
+
+  tr:hover {
+    background: #f9fafb;
+  }
+
+  /* Buttons */
+  button {
+    padding: 6px 10px;
+    margin: 2px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .pending {
+    background: #fff4e5;
+    color: #b26a00;
+  }
+
+  .approve {
+    background: #e3f1df;
+    color: #2e7d32;
+  }
+
+  .reject {
+    background: #fdecea;
+    color: #c62828;
+  }
+
+  button:active {
+    transform: scale(0.95);
+  }
+
+  /* Mobile Optimization */
+  @media (max-width: 768px) {
+
+    body {
+      padding: 8px;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+
+    table {
+      min-width: 700px;
+    }
+
+    th, td {
+      padding: 8px;
+      font-size: 12px;
+    }
+
+    button {
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+  }
+
+</style>
 </head>
 
 <body>
 
 <h2>Dashboard</h2>
 
-<table id="table"></table>
+<div class="table-container">
+  <table id="table"></table>
+</div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbz4jK24JvVgOQG0gCz_Qsa--b_K8NmbA6OvHE-xjPdZmJniEdi-anfmrrYKb2KoNnhfNQ/exec";
