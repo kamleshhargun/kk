@@ -246,9 +246,30 @@ Time: ${time}`;
 
 });
 
+function setMode(mode) {
+
+const typeInput = document.getElementById("type");
+const exchangeField = document.getElementById("exchangeField");
+const exchangeBtn = document.getElementById("exchangeBtn");
+const returnBtn = document.getElementById("returnBtn");
+
+typeInput.value = mode;
+
+if (mode === "return") {
+exchangeField.style.display = "none";
+exchangeBtn.classList.remove("active");
+returnBtn.classList.add("active");
+} else {
+exchangeField.style.display = "block";
+exchangeBtn.classList.add("active");
+returnBtn.classList.remove("active");
+}
+}
+window.onload = () => setMode("exchange");
+
 function shareWhatsApp(){
-  const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lastMessage)}`;
-  window.open(url, "_blank");
+const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lastMessage)}`;
+window.open(url, "_blank");
 }
 
 </script>
