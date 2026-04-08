@@ -5,127 +5,39 @@
 <title>Gulabishehar Admin Panel</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f6f6f6;
-}
+body { font-family: Arial; background:#f6f6f6; }
+.container { max-width:1200px; margin:25px auto; background:#fff; padding:20px; border-radius:14px; }
+h2{text-align:center}
 
-.container {
-  max-width: 1200px;
-  margin: 25px auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 4px 25px rgba(0,0,0,0.08);
-}
+/* header */
+.header-stats{text-align:center;margin-bottom:15px}
+.header-stats span{margin:0 10px;font-weight:bold}
 
-h2 { text-align:center; }
+/* tabs */
+.tabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button{padding:8px 14px;border:1px solid #ddd;border-radius:6px;background:#f1f1f1;cursor:pointer}
+.tabs button.active{background:#000;color:#fff}
 
-/* HEADER */
-.header-stats {
-  text-align: center;
-  margin-bottom: 15px;
-}
+/* search */
+.search-container{display:flex;justify-content:flex-end;margin-bottom:10px}
+.search-box{position:relative}
+#searchBox{width:220px;padding:8px 30px 8px 10px;border-radius:6px;border:1px solid #ddd}
+.clear-btn{position:absolute;right:8px;top:6px;cursor:pointer}
 
-.header-stats span {
-  margin: 0 10px;
-  font-weight: bold;
-}
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#000;color:#fff}
+th,td{border:1px solid #eee;padding:8px;text-align:center}
 
-/* TABS */
-.tabs {
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
+/* btn */
+.apply-btn{background:#000;color:#fff;border:none;padding:5px 10px;border-radius:5px}
+.undo-btn{background:#ff9800;color:#fff;border:none;padding:5px 10px;border-radius:5px}
 
-.tabs button {
-  padding:8px 14px;
-  border:1px solid #ddd;
-  border-radius:6px;
-  background:#f1f1f1;
-  cursor:pointer;
-}
-
-.tabs button.active {
-  background:#000;
-  color:#fff;
-}
-
-/* SEARCH RIGHT */
-.search-container {
-  display:flex;
-  justify-content:flex-end;
-  margin-bottom:10px;
-}
-
-.search-box { position:relative; }
-
-#searchBox {
-  width:220px;
-  padding:8px 30px 8px 10px;
-  border-radius:6px;
-  border:1px solid #ddd;
-}
-
-.clear-btn {
-  position:absolute;
-  right:8px;
-  top:6px;
-  cursor:pointer;
-  color:#999;
-}
-
-/* TABLE */
-table {
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
-
-th {
-  background:#000;
-  color:#fff;
-}
-
-th, td {
-  border:1px solid #eee;
-  padding:8px;
-  text-align:center;
-}
-
-/* BUTTONS */
-.apply-btn {
-  background:#000;
-  color:#fff;
-  border:none;
-  padding:5px 10px;
-  border-radius:5px;
-}
-
-.undo-btn {
-  background:#ff9800;
-  color:#fff;
-  border:none;
-  padding:5px 10px;
-  border-radius:5px;
-}
-
-/* MOBILE CARD */
-.mobile-card { display:none; }
-
+/* mobile */
+.mobile-card{display:none}
 @media(max-width:768px){
-  table { display:none; }
-
-  .mobile-card {
-    display:block;
-    border:1px solid #eee;
-    border-radius:10px;
-    padding:12px;
-    margin-bottom:10px;
-  }
+table{display:none}
+.mobile-card{display:block;border:1px solid #eee;border-radius:10px;padding:12px;margin-bottom:10px}
 }
 </style>
 
@@ -138,36 +50,35 @@ th, td {
 <h2>Gulabishehar Admin Panel</h2>
 
 <div class="header-stats">
-  <h3>Requests Received</h3>
-  <span>Today: <span id="todayCount">0</span></span>
-  <span>Yesterday: <span id="yesterdayCount">0</span></span>
-  <span>Total: <span id="totalCount">0</span></span>
+<h3>Requests Received</h3>
+<span>Today: <span id="todayCount">0</span></span>
+<span>Yesterday: <span id="yesterdayCount">0</span></span>
+<span>Total: <span id="totalCount">0</span></span>
 </div>
 
 <div class="tabs">
-  <button onclick="setTab('return')" id="returnTab" class="active">Return (0)</button>
-  <button onclick="setTab('exchange')" id="exchangeTab">Exchange (0)</button>
-  <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate (0)</button>
-  <button onclick="setTab('done')" id="doneTab">Done (0)</button>
-  <button onclick="refreshData()">🔄 Refresh</button>
+<button onclick="setTab('return')" id="returnTab" class="active">Return (0)</button>
+<button onclick="setTab('exchange')" id="exchangeTab">Exchange (0)</button>
+<button onclick="setTab('duplicate')" id="duplicateTab">Duplicate (0)</button>
+<button onclick="setTab('done')" id="doneTab">Done (0)</button>
 
-  <select onchange="exportCSV(this.value)">
-    <option value="">📥 Export</option>
-    <option value="all">All</option>
-    <option value="return">Return</option>
-    <option value="exchange">Exchange</option>
-    <option value="duplicate">Duplicate</option>
-    <option value="done">Done</option>
-  </select>
+<button onclick="refreshData()">🔄</button>
+
+<select onchange="exportCSV(this.value)">
+<option value="">📥 Export</option>
+<option value="all">All</option>
+<option value="return">Return</option>
+<option value="exchange">Exchange</option>
+<option value="duplicate">Duplicate</option>
+<option value="done">Done</option>
+</select>
 </div>
 
-<!-- SEARCH -->
-
 <div class="search-container">
-  <div class="search-box">
-    <input id="searchBox" placeholder="Search...">
-    <span class="clear-btn" onclick="clearSearch()">✖</span>
-  </div>
+<div class="search-box">
+<input id="searchBox" placeholder="Search...">
+<span class="clear-btn" onclick="clearSearch()">✖</span>
+</div>
 </div>
 
 <table id="dataTable"></table>
@@ -181,202 +92,173 @@ const sheetURL="https://script.google.com/macros/s/AKfycbzAtBQ85A7OYN3S35XiPiCSb
 
 let globalData=[];
 let currentTab="return";
-let searchTimeout=null;
 
-/* REFRESH */  
-function refreshData(){
-  let btn = event.target;
-  btn.innerText = "⏳ Loading...";
-  btn.disabled = true;
-
-  loadData();
-
-  setTimeout(()=>{
-    btn.innerText = "🔄 Refresh";
-    btn.disabled = false;
-  },1500);
-} 
-/* FORMAT DATE TIME */
-function formatDate(val){
-  let d=new Date(val);
-  if(isNaN(d)) return val;
-  return d.toLocaleDateString("en-IN");
+/* FIX IST DATE */
+function getISTDate(offset=0){
+let d=new Date();
+d.setHours(d.getHours()+5);
+d.setMinutes(d.getMinutes()+30);
+d.setDate(d.getDate()+offset);
+return d.toISOString().split("T")[0];
 }
 
-function formatTime(val){
-  let d=new Date(val);
-  if(isNaN(d)) return val;
-  return d.toLocaleTimeString("en-IN",{hour:'2-digit',minute:'2-digit'});
-}
-
-/* LOAD */
+/* LOAD FAST */
 function loadData(){
-  fetch(sheetURL+"?mode=admin")
-  .then(res=>res.json())
-  .then(data=>{
-    globalData=data;
-    calculateStats();
-    renderTable();
-  });
+fetch(sheetURL+"?mode=admin")
+.then(r=>r.json())
+.then(data=>{
+globalData=data;
+calculateStats();
+renderTable();
+});
 }
 
-/* STATS */
+/* FIX COUNT */
 function calculateStats(){
 
-  let today=new Date().toISOString().split("T")[0];
-  let yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
+let today=getISTDate(0);
+let yesterday=getISTDate(-1);
 
-  let t=0,y=0,total=0,r=0,e=0,d=0,done=0;
+let t=0,y=0,total=0,r=0,e=0,d=0,done=0;
 
-  globalData.forEach(row=>{
-    let date=row.date;
-    let type=row.type?.toLowerCase();
-    let status=row.status?.toLowerCase();
+globalData.forEach(row=>{
 
-    if(type==="return"||type==="exchange"){
-      total++;
-      if(date===today) t++;
-      if(date===yesterday) y++;
-    }
+let date=(row.date||"").split("T")[0];
+let type=row.type;
+let status=row.status;
 
-    if(type==="return" && status!=="duplicate" && status!=="done") r++;
-    if(type==="exchange" && status!=="duplicate" && status!=="done") e++;
-    if(status==="duplicate") d++;
-    if(status==="done") done++;
-  });
+if(type==="return"||type==="exchange"){
+total++;
+if(date===today) t++;
+if(date===yesterday) y++;
+}
 
-  document.getElementById("todayCount").innerText=t;
-  document.getElementById("yesterdayCount").innerText=y;
-  document.getElementById("totalCount").innerText=total;
+if(type==="return" && status!=="duplicate" && status!=="done") r++;
+if(type==="exchange" && status!=="duplicate" && status!=="done") e++;
+if(status==="duplicate") d++;
+if(status==="done") done++;
 
-  document.getElementById("returnTab").innerText=`Return (${r})`;
-  document.getElementById("exchangeTab").innerText=`Exchange (${e})`;
-  document.getElementById("duplicateTab").innerText=`Duplicate (${d})`;
-  document.getElementById("doneTab").innerText=`Done (${done})`;
+});
+
+document.getElementById("todayCount").innerText=t;
+document.getElementById("yesterdayCount").innerText=y;
+document.getElementById("totalCount").innerText=total;
+
+document.getElementById("returnTab").innerText=`Return (${r})`;
+document.getElementById("exchangeTab").innerText=`Exchange (${e})`;
+document.getElementById("duplicateTab").innerText=`Duplicate (${d})`;
+document.getElementById("doneTab").innerText=`Done (${done})`;
 }
 
 /* TAB */
 function setTab(tab){
-  currentTab=tab;
-  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-  document.getElementById(tab+"Tab").classList.add("active");
-  renderTable();
+currentTab=tab;
+document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+document.getElementById(tab+"Tab").classList.add("active");
+renderTable();
 }
 
 /* SEARCH */
-document.getElementById("searchBox").addEventListener("keyup",function(){
-  clearTimeout(searchTimeout);
-  searchTimeout=setTimeout(()=>renderTable(),300);
-});
+document.getElementById("searchBox").addEventListener("keyup",()=>renderTable());
+function clearSearch(){document.getElementById("searchBox").value="";renderTable();}
 
-function clearSearch(){
-  document.getElementById("searchBox").value="";
-  renderTable();
+/* ACTION FIX */
+function apply(i){
+
+let row=globalData[i];
+let action=document.getElementById("a_"+i).value;
+
+if(!action) return alert("Select action");
+
+let status="";
+if(action==="done") status="GREEN";
+if(action==="pickup") status="YELLOW";
+if(action==="duplicate") status="DUPLICATE";
+
+fetch(sheetURL,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+mode:"updateStatus",
+request_id:row.request_id,
+status:status
+})
+})
+.then(()=>loadData());
+}
+
+/* UNDO FIX */
+function undo(id){
+fetch(sheetURL,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+mode:"updateStatus",
+request_id:id,
+status:"UNDO_DUPLICATE"
+})
+})
+.then(()=>loadData());
 }
 
 /* TABLE */
 function renderTable(){
 
-  let search=document.getElementById("searchBox").value.toLowerCase().trim();
-  let html="<tr>";
-  let mobileHTML="";
+let html="<tr>";
+let mobile="";
 
-  if(globalData.length>0){
-    Object.keys(globalData[0]).forEach(h=>{
-      if(h==="duplicate") return;
-      html+=`<th>${h}</th>`;
-    });
-    html+="<th>Action</th></tr>";
-  }
-
-  globalData.forEach((row,i)=>{
-
-    let match=!search||Object.values(row).some(v=>String(v).toLowerCase().includes(search));
-    if(!match) return;
-
-    let type=row.type?.toLowerCase();
-    let status=row.status?.toLowerCase();
-
-    let show=false;
-    if(currentTab==="return" && type==="return" && status!=="duplicate" && status!=="done") show=true;
-    if(currentTab==="exchange" && type==="exchange" && status!=="duplicate" && status!=="done") show=true;
-    if(currentTab==="duplicate" && status==="duplicate") show=true;
-    if(currentTab==="done" && status==="done") show=true;
-
-    if(!show) return;
-
-    html+="<tr>";
-
-    Object.entries(row).forEach(([k,v])=>{
-      if(k==="duplicate") return;
-
-      if(k==="date") html+=`<td>${formatDate(v)}</td>`;
-      else if(k==="time") html+=`<td>${formatTime(v)}</td>`;
-      else html+=`<td>${v}</td>`;
-    });
-
-    let actionHTML="";
-
-    if(currentTab==="duplicate"||currentTab==="done"){
-      actionHTML=`<button class="undo-btn" onclick="undo('${row.request_id}')">Undo</button>`;
-    }else{
-      actionHTML=`
-      <select id="a_${i}">
-        <option value="">Select</option>
-        <option value="duplicate">Duplicate</option>
-        <option value="pickup">Pickup</option>
-        <option value="done">Done</option>
-      </select>
-      <button class="apply-btn" onclick="apply(${i})">✔</button>`;
-    }
-
-    html+=`<td>${actionHTML}</td></tr>`;
-
-    mobileHTML+=`
-    <div class="mobile-card">
-      <div><b>${row.name}</b></div>
-      <div>${row.mobile}</div>
-      <div>Order: ${row.order_id}</div>
-      <div>${formatDate(row.date)} | ${formatTime(row.time)}</div>
-      <div>${row.type} | ${row.status}</div>
-      <div>${actionHTML}</div>
-    </div>`;
-  });
-
-  document.getElementById("dataTable").innerHTML=html;
-  document.getElementById("mobileView").innerHTML=mobileHTML;
+if(globalData.length>0){
+Object.keys(globalData[0]).forEach(h=>html+=`<th>${h}</th>`);
+html+="<th>Action</th></tr>";
 }
 
-/* EXPORT */
-function exportCSV(type){
+globalData.forEach((row,i)=>{
 
-  if(!type) return;
+let type=row.type;
+let status=row.status;
 
-  let filtered=globalData.filter(row=>{
-    let t=row.type?.toLowerCase();
-    let s=row.status?.toLowerCase();
+let show=false;
+if(currentTab==="return" && type==="return" && status!=="duplicate" && status!=="done") show=true;
+if(currentTab==="exchange" && type==="exchange" && status!=="duplicate" && status!=="done") show=true;
+if(currentTab==="duplicate" && status==="duplicate") show=true;
+if(currentTab==="done" && status==="done") show=true;
 
-    if(type==="all") return true;
-    if(type==="return") return t==="return";
-    if(type==="exchange") return t==="exchange";
-    if(type==="duplicate") return s==="duplicate";
-    if(type==="done") return s==="done";
-  });
+if(!show) return;
 
-  let headers=Object.keys(globalData[0]).filter(h=>h!=="duplicate");
-  let csv=[headers.join(",")];
+html+="<tr>";
+Object.values(row).forEach(v=>html+=`<td>${v}</td>`);
 
-  filtered.forEach(row=>{
-    let values=headers.map(h=>`"${row[h]||""}"`);
-    csv.push(values.join(","));
-  });
-
-  let blob=new Blob([csv.join("\n")]);
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=type+".csv";
-  a.click();
+let action="";
+if(currentTab==="duplicate"||currentTab==="done"){
+action=`<button onclick="undo('${row.request_id}')">Undo</button>`;
+}else{
+action=`<select id="a_${i}">
+<option value="">Select</option>
+<option value="duplicate">Duplicate</option>
+<option value="pickup">Pickup</option>
+<option value="done">Done</option>
+</select>
+<button onclick="apply(${i})">✔</button>`;
 }
+
+html+=`<td>${action}</td></tr>`;
+
+mobile+=`<div class="mobile-card">
+<b>${row.name}</b><br>
+${row.mobile}<br>
+${row.order_id}<br>
+${row.type} | ${row.status}<br>
+${action}
+</div>`;
+
+});
+
+document.getElementById("dataTable").innerHTML=html;
+document.getElementById("mobileView").innerHTML=mobile;
+}
+
+/* REFRESH */
+function refreshData(){loadData();}
 
 loadData();
 
