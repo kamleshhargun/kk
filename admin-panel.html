@@ -1,16 +1,15 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <title>Gulabishehar Admin Panel</title>
 
 <style>
-
 body {
   font-family: Arial, sans-serif;
   background: #f6f6f6;
 }
 
-/* Container */
 .container {
   max-width: 1200px;
   margin: 25px auto;
@@ -20,207 +19,211 @@ body {
   box-shadow: 0 4px 25px rgba(0,0,0,0.08);
 }
 
-/* Heading */
-h2 {
-  text-align: center;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
+h2 { text-align:center; }
 
-/* ===== STATS (Top Cards) ===== */
-.stats {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
+/* HEADER */
+.header-stats {
+  text-align: center;
   margin-bottom: 15px;
-  flex-wrap: wrap;
 }
 
-.stat-box {
-  background: #000;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  min-width: 120px;
-  text-align: center;
-  transition: 0.3s;
-}
-
-.stat-box span {
-  display: block;
-  font-size: 18px;
+.header-stats span {
+  margin: 0 10px;
   font-weight: bold;
 }
 
-/* ===== TABS ===== */
+/* TABS */
 .tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
 }
 
 .tabs button {
-  padding: 8px 18px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #f1f1f1;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.2s;
+  padding:8px 14px;
+  border:1px solid #ddd;
+  border-radius:6px;
+  background:#f1f1f1;
+  cursor:pointer;
 }
 
-/* Hover */
-.tabs button:hover {
-  background: #e0e0e0;
-}
-
-/* Active Tab */
 .tabs button.active {
-  background: #000;
-  color: #fff;
-  border-color: #000;
+  background:#000;
+  color:#fff;
 }
 
-/* ===== SEARCH ===== */
+/* SEARCH RIGHT */
+.search-container {
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:10px;
+}
+
+.search-box { position:relative; }
+
 #searchBox {
-  width: 60%;
-  padding: 10px;
-  margin: 10px auto;
-  display: block;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  width:220px;
+  padding:8px 30px 8px 10px;
+  border-radius:6px;
+  border:1px solid #ddd;
 }
 
-/* ===== TABLE ===== */
+.clear-btn {
+  position:absolute;
+  right:8px;
+  top:6px;
+  cursor:pointer;
+  color:#999;
+}
+
+/* TABLE */
 table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin-top: 10px;
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
 }
 
 th {
-  background: #000;
-  color: #fff;
+  background:#000;
+  color:#fff;
 }
 
 th, td {
-  border: 1px solid #eee;
-  padding: 8px;
-  text-align: center;
+  border:1px solid #eee;
+  padding:8px;
+  text-align:center;
 }
 
-/* ===== BUTTONS ===== */
+/* BUTTONS */
 .apply-btn {
-  background: #000;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
+  background:#000;
+  color:#fff;
+  border:none;
+  padding:5px 10px;
+  border-radius:5px;
 }
 
 .undo-btn {
-  background: #ff9800;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
+  background:#ff9800;
+  color:#fff;
+  border:none;
+  padding:5px 10px;
+  border-radius:5px;
 }
 
-/* ===== LOADING ===== */
-#loading {
-  text-align: center;
-  font-weight: 500;
-  margin: 10px;
-}
+/* MOBILE CARD */
+.mobile-card { display:none; }
 
-/* ===== TOAST ===== */
-#toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #000;
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 6px;
-  display: none;
-}
-
-/* ===== MOBILE ===== */
 @media(max-width:768px){
-  #searchBox {
-    width: 90%;
+  table { display:none; }
+
+  .mobile-card {
+    display:block;
+    border:1px solid #eee;
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
   }
 }
-
 </style>
 
 </head>
+
 <body>
 
 <div class="container">
 
 <h2>Gulabishehar Admin Panel</h2>
 
-<!-- Dashboard -->
-<div class="stats">
-  <div>Return: <span id="returnCount">0</span></div>
-  <div>Exchange: <span id="exchangeCount">0</span></div>
-  <div>Duplicate: <span id="duplicateCount">0</span></div>
-  <div>Done: <span id="doneCount">0</span></div>
+<div class="header-stats">
+  <h3>Requests Received</h3>
+  <span>Today: <span id="todayCount">0</span></span>
+  <span>Yesterday: <span id="yesterdayCount">0</span></span>
+  <span>Total: <span id="totalCount">0</span></span>
 </div>
 
 <div class="tabs">
-  <button onclick="setTab('return')" id="returnTab" class="active">Return</button>
-  <button onclick="setTab('exchange')" id="exchangeTab">Exchange</button>
-  <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate</button>
-  <button onclick="setTab('done')" id="doneTab">Done</button>
-  <button onclick="exportCSV()">📥 Export</button>
+  <button onclick="setTab('return')" id="returnTab" class="active">Return (0)</button>
+  <button onclick="setTab('exchange')" id="exchangeTab">Exchange (0)</button>
+  <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate (0)</button>
+  <button onclick="setTab('done')" id="doneTab">Done (0)</button>
+
+  <select onchange="exportCSV(this.value)">
+    <option value="">📥 Export</option>
+    <option value="all">All</option>
+    <option value="return">Return</option>
+    <option value="exchange">Exchange</option>
+    <option value="duplicate">Duplicate</option>
+    <option value="done">Done</option>
+  </select>
 </div>
 
-<div style="text-align:center;">
-  <input id="searchBox" placeholder="Search..." onkeyup="renderTable()">
-</div>
+<!-- SEARCH -->
 
-<div id="loading">⏳ Loading...</div>
+<div class="search-container">
+  <div class="search-box">
+    <input id="searchBox" placeholder="Search...">
+    <span class="clear-btn" onclick="clearSearch()">✖</span>
+  </div>
+</div>
 
 <table id="dataTable"></table>
+<div id="mobileView"></div>
 
 </div>
-
-<div id="toast"></div>
 
 <script>
 
-const sheetURL = "https://script.google.com/macros/s/AKfycbwXWhuMaDMOPhJigZvqBIJrKsQjVcEEuZ_Ge9RS0Z17jKxzCw4HWMWbMfRk-Dpmzbg/exec";
+const sheetURL="https://script.google.com/macros/s/AKfycbzAtBQ85A7OYN3S35XiPiCSbXqZI3SrDu9lVdX3NDUGgacTQ2regqhfcAylxOXwrFTd/exec";
 
-let globalData = [];
-let currentTab = "return";
+let globalData=[];
+let currentTab="return";
+let searchTimeout=null;
 
+/* FORMAT DATE TIME */
+function formatDate(val){
+  let d=new Date(val);
+  if(isNaN(d)) return val;
+  return d.toLocaleDateString("en-IN");
+}
+
+function formatTime(val){
+  let d=new Date(val);
+  if(isNaN(d)) return val;
+  return d.toLocaleTimeString("en-IN",{hour:'2-digit',minute:'2-digit'});
+}
+
+/* LOAD */
 function loadData(){
-  document.getElementById("loading").style.display="block";
-
   fetch(sheetURL+"?mode=admin")
   .then(res=>res.json())
   .then(data=>{
     globalData=data;
-    document.getElementById("loading").style.display="none";
     calculateStats();
     renderTable();
   });
 }
 
+/* STATS */
 function calculateStats(){
-  let r=0,e=0,d=0,done=0;
+
+  let today=new Date().toISOString().split("T")[0];
+  let yesterday=new Date(Date.now()-86400000).toISOString().split("T")[0];
+
+  let t=0,y=0,total=0,r=0,e=0,d=0,done=0;
 
   globalData.forEach(row=>{
-    let type=(row.type||"").toLowerCase();
-    let status=(row.status||"").toLowerCase();
+    let date=row.date;
+    let type=row.type?.toLowerCase();
+    let status=row.status?.toLowerCase();
+
+    if(type==="return"||type==="exchange"){
+      total++;
+      if(date===today) t++;
+      if(date===yesterday) y++;
+    }
 
     if(type==="return" && status!=="duplicate" && status!=="done") r++;
     if(type==="exchange" && status!=="duplicate" && status!=="done") e++;
@@ -228,12 +231,17 @@ function calculateStats(){
     if(status==="done") done++;
   });
 
-  document.getElementById("returnCount").innerText=r;
-  document.getElementById("exchangeCount").innerText=e;
-  document.getElementById("duplicateCount").innerText=d;
-  document.getElementById("doneCount").innerText=done;
+  document.getElementById("todayCount").innerText=t;
+  document.getElementById("yesterdayCount").innerText=y;
+  document.getElementById("totalCount").innerText=total;
+
+  document.getElementById("returnTab").innerText=`Return (${r})`;
+  document.getElementById("exchangeTab").innerText=`Exchange (${e})`;
+  document.getElementById("duplicateTab").innerText=`Duplicate (${d})`;
+  document.getElementById("doneTab").innerText=`Done (${done})`;
 }
 
+/* TAB */
 function setTab(tab){
   currentTab=tab;
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
@@ -241,15 +249,27 @@ function setTab(tab){
   renderTable();
 }
 
+/* SEARCH */
+document.getElementById("searchBox").addEventListener("keyup",function(){
+  clearTimeout(searchTimeout);
+  searchTimeout=setTimeout(()=>renderTable(),300);
+});
+
+function clearSearch(){
+  document.getElementById("searchBox").value="";
+  renderTable();
+}
+
+/* TABLE */
 function renderTable(){
 
-  let search=document.getElementById("searchBox").value.toLowerCase();
-
+  let search=document.getElementById("searchBox").value.toLowerCase().trim();
   let html="<tr>";
+  let mobileHTML="";
 
-  // dynamic headers
   if(globalData.length>0){
     Object.keys(globalData[0]).forEach(h=>{
+      if(h==="duplicate") return;
       html+=`<th>${h}</th>`;
     });
     html+="<th>Action</th></tr>";
@@ -257,11 +277,11 @@ function renderTable(){
 
   globalData.forEach((row,i)=>{
 
-    let text=Object.values(row).join(" ").toLowerCase();
-    if(search && !text.includes(search)) return;
+    let match=!search||Object.values(row).some(v=>String(v).toLowerCase().includes(search));
+    if(!match) return;
 
-    let type=(row.type||"").toLowerCase();
-    let status=(row.status||"").toLowerCase();
+    let type=row.type?.toLowerCase();
+    let status=row.status?.toLowerCase();
 
     let show=false;
     if(currentTab==="return" && type==="return" && status!=="duplicate" && status!=="done") show=true;
@@ -273,83 +293,66 @@ function renderTable(){
 
     html+="<tr>";
 
-    Object.values(row).forEach(v=>{
-      html+=`<td>${v}</td>`;
+    Object.entries(row).forEach(([k,v])=>{
+      if(k==="duplicate") return;
+
+      if(k==="date") html+=`<td>${formatDate(v)}</td>`;
+      else if(k==="time") html+=`<td>${formatTime(v)}</td>`;
+      else html+=`<td>${v}</td>`;
     });
 
-    // actions
-    if(currentTab==="duplicate" || currentTab==="done"){
-      html+=`<td><button class="undo-btn" onclick="undo('${row.request_id}')">Undo</button></td>`;
-    } else {
-      html+=`<td>
-        <select id="a_${i}">
-          <option value="">Select</option>
-          <option value="duplicate">Duplicate 🔁</option>
-          <option value="pickup">Pickup 🚚</option>
-          <option value="done">Done ✅</option>
-        </select>
-        <button class="apply-btn" onclick="apply(${i})">✔</button>
-      </td>`;
+    let actionHTML="";
+
+    if(currentTab==="duplicate"||currentTab==="done"){
+      actionHTML=`<button class="undo-btn" onclick="undo('${row.request_id}')">Undo</button>`;
+    }else{
+      actionHTML=`
+      <select id="a_${i}">
+        <option value="">Select</option>
+        <option value="duplicate">Duplicate</option>
+        <option value="pickup">Pickup</option>
+        <option value="done">Done</option>
+      </select>
+      <button class="apply-btn" onclick="apply(${i})">✔</button>`;
     }
 
-    html+="</tr>";
+    html+=`<td>${actionHTML}</td></tr>`;
 
+    mobileHTML+=`
+    <div class="mobile-card">
+      <div><b>${row.name}</b></div>
+      <div>${row.mobile}</div>
+      <div>Order: ${row.order_id}</div>
+      <div>${formatDate(row.date)} | ${formatTime(row.time)}</div>
+      <div>${row.type} | ${row.status}</div>
+      <div>${actionHTML}</div>
+    </div>`;
   });
 
   document.getElementById("dataTable").innerHTML=html;
+  document.getElementById("mobileView").innerHTML=mobileHTML;
 }
 
-function apply(i){
+/* EXPORT */
+function exportCSV(type){
 
-  let row=globalData[i];
-  let action=document.getElementById("a_"+i).value;
+  if(!type) return;
 
-  if(!action) return showToast("Select action");
+  let filtered=globalData.filter(row=>{
+    let t=row.type?.toLowerCase();
+    let s=row.status?.toLowerCase();
 
-  if(!confirm("Are you sure?")) return;
-
-  let status="";
-  if(action==="done") status="GREEN";
-  if(action==="pickup") status="YELLOW";
-  if(action==="duplicate") status="DUPLICATE";
-
-  fetch(sheetURL,{
-    method:"POST",
-    body:JSON.stringify({
-      mode:"updateStatus",
-      request_id:row.request_id,
-      status:status
-    })
-  }).then(()=>{
-    showToast("Updated");
-    loadData();
+    if(type==="all") return true;
+    if(type==="return") return t==="return";
+    if(type==="exchange") return t==="exchange";
+    if(type==="duplicate") return s==="duplicate";
+    if(type==="done") return s==="done";
   });
-}
 
-function undo(id){
+  let headers=Object.keys(globalData[0]).filter(h=>h!=="duplicate");
+  let csv=[headers.join(",")];
 
-  if(!confirm("Undo this action?")) return;
-
-  fetch(sheetURL,{
-    method:"POST",
-    body:JSON.stringify({
-      mode:"updateStatus",
-      request_id:id,
-      status:"UNDO_DUPLICATE"
-    })
-  }).then(()=>{
-    showToast("Restored");
-    loadData();
-  });
-}
-
-function exportCSV(){
-
-  let csv=[];
-  let headers=Object.keys(globalData[0]||{});
-  csv.push(headers.join(","));
-
-  globalData.forEach(row=>{
+  filtered.forEach(row=>{
     let values=headers.map(h=>`"${row[h]||""}"`);
     csv.push(values.join(","));
   });
@@ -357,15 +360,8 @@ function exportCSV(){
   let blob=new Blob([csv.join("\n")]);
   let a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="data.csv";
+  a.download=type+".csv";
   a.click();
-}
-
-function showToast(msg){
-  let t=document.getElementById("toast");
-  t.innerText=msg;
-  t.style.display="block";
-  setTimeout(()=>t.style.display="none",2000);
 }
 
 loadData();
