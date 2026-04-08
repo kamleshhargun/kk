@@ -149,6 +149,7 @@ th, td {
   <button onclick="setTab('exchange')" id="exchangeTab">Exchange (0)</button>
   <button onclick="setTab('duplicate')" id="duplicateTab">Duplicate (0)</button>
   <button onclick="setTab('done')" id="doneTab">Done (0)</button>
+  <button onclick="refreshData()">🔄 Refresh</button>
 
   <select onchange="exportCSV(this.value)">
     <option value="">📥 Export</option>
@@ -182,6 +183,19 @@ let globalData=[];
 let currentTab="return";
 let searchTimeout=null;
 
+/* REFRESH */  
+function refreshData(){
+  let btn = event.target;
+  btn.innerText = "⏳ Loading...";
+  btn.disabled = true;
+
+  loadData();
+
+  setTimeout(()=>{
+    btn.innerText = "🔄 Refresh";
+    btn.disabled = false;
+  },1500);
+} 
 /* FORMAT DATE TIME */
 function formatDate(val){
   let d=new Date(val);
