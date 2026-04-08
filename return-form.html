@@ -169,23 +169,14 @@ const successBox = document.getElementById("successBox");
 const submitBtn = document.getElementById("submitBtn");
 
 let lastMessage = "";
+let isSubmitting = false; // 🔥 prevent double submit
 
-function setMode(mode) {
-  document.getElementById("type").value = mode;
-
-  if (mode === "return") {
-    document.getElementById("exchangeField").style.display = "none";
-    exchangeBtn.classList.remove("active");
-    returnBtn.classList.add("active");
-  } else {
-    document.getElementById("exchangeField").style.display = "block";
-    exchangeBtn.classList.add("active");
-    returnBtn.classList.remove("active");
-  }
-}
-
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", (e) => {
   e.preventDefault();
+
+  // 🚫 Prevent multiple click
+  if(isSubmitting) return;
+  isSubmitting = true;
 
   submitBtn.disabled = true;
   submitBtn.innerText = "⏳ Submitting...";
@@ -193,21 +184,31 @@ form.addEventListener("submit", async (e) => {
   const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
 
-  try {
+  // 🔥 FAST UI (no wait)
+  form.style.display = "none";
+  successBox.style.display = "block";
+  successBox.innerHTML = `
+    <p><b>⏳ Submitting your request...</b></p>
+    <p>Please wait...</p>
+  `;
 
-    const res = await fetch(scriptURL, {
-      method: "POST",
-      body: JSON.stringify(data)
-    });
+  // 🚀 Send in background
+  fetch(scriptURL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(result => {
 
-    const result = await res.json();
     const requestID = result.request_id;
 
     const now = new Date();
     const date = now.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
     const time = now.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
 
-    // WhatsApp message store (but NOT open)
     lastMessage = `📦 ${data.type} Request
 
 Request ID: ${requestID}
@@ -221,27 +222,27 @@ Exchange: ${data.exchange_product || "N/A"}
 Date: ${date}
 Time: ${time}`;
 
-    // Hide form
-    form.style.display = "none";
-
-    // Show success
-    successBox.style.display = "block";
+    // ✅ Final success replace
     successBox.innerHTML = `
       <p><b>✅ Request Submitted Successfully</b></p>
       <p><b>Request ID:</b> ${requestID}</p>
       <p>Date: ${date} | Time: ${time}</p>
 
-      <p>Our team will contact you as soon as possible.</p>
-      <p>If needed, you can share this request on WhatsApp.</p>
+      <p>Our team will contact you soon.</p>
 
       <button class="whatsapp-btn" onclick="shareWhatsApp()">Share on WhatsApp</button>
     `;
 
-  } catch (err) {
-    alert("❌ Error submitting form");
-    submitBtn.disabled = false;
-    submitBtn.innerText = "Submit Request";
-  }
+  })
+  .catch(() => {
+
+    successBox.innerHTML = `
+      <p style="color:red;"><b>❌ Failed to submit</b></p>
+      <button onclick="location.reload()">Try Again</button>
+    `;
+
+    isSubmitting = false;
+  });
 
 });
 
@@ -251,6 +252,7 @@ function shareWhatsApp(){
 }
 
 </script>
+
 
 </body>
 </html>
