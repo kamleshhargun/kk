@@ -4,25 +4,120 @@
   <title>Exchange / Return Request</title>
 
   <style>
-    body { font-family: Arial; text-align:center; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+    background: #f6f6f7;
+    margin: 0;
+    padding: 16px;
+    color: #202223;
+  }
+
+  .container {
+    max-width: 420px;
+    margin: auto;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 20px;
+  }
+
+  p.note {
+    text-align: center;
+    color: #d82c0d;
+    font-size: 13px;
+    margin-bottom: 15px;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 6px 0;
+    border-radius: 8px;
+    border: 1px solid #d1d5d8;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+    box-sizing: border-box;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: #5c6ac4;
+    box-shadow: 0 0 0 1px #5c6ac4;
+  }
+
+  textarea {
+    resize: none;
+    height: 80px;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    background: #111;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: #000;
+  }
+
+  button:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
+
+  /* Success message */
+  #success {
+    margin-top: 15px;
+    text-align: center;
+  }
+
+  #success button {
+    width: auto;
+    padding: 10px 15px;
+    background: #25D366;
+  }
+
+  /* Mobile optimization */
+  @media (max-width: 480px) {
+    .container {
+      padding: 16px;
+      border-radius: 10px;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+
     input, select, textarea {
-      width: 300px;
-      padding: 10px;
-      margin: 5px;
+      font-size: 13px;
     }
+
     button {
-      padding: 10px 20px;
-      background: black;
-      color: white;
-      border: none;
+      font-size: 14px;
     }
-  </style>
+  }
+</style>
 </head>
 
 <body>
 
+<div class="container">
+
 <h2>Exchange / Return Request</h2>
-<p style="color:red;">₹100 will be deducted on exchange or returns</p>
+<p class="note">₹100 will be deducted on exchange or returns</p>
 
 <form id="form">
 
@@ -42,7 +137,9 @@
 
 </form>
 
-<div id="success" style="display:none;"></div>
+<div id="success"></div>
+
+</div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbz4jK24JvVgOQG0gCz_Qsa--b_K8NmbA6OvHE-xjPdZmJniEdi-anfmrrYKb2KoNnhfNQ/exec";
