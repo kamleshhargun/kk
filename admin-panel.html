@@ -4,19 +4,35 @@
 <title>Admin Panel</title>
 
 <style>
-body { font-family: Arial; background:#f6f6f7; padding:10px; }
-h2 { text-align:center; }
+body {
+  font-family: Arial;
+  background:#f6f6f7;
+  padding:10px;
+  margin:0;
+}
+
+h2 {
+  text-align:center;
+  font-size:18px;
+}
 
 /* Tabs */
-.tabs { text-align:center; margin-bottom:10px; }
+.tabs {
+  text-align:center;
+  margin-bottom:10px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+}
 
 .tabs button {
-  padding:8px 12px;
+  padding:8px 10px;
   margin:3px;
   border:none;
   border-radius:6px;
   cursor:pointer;
   background:#e5e7eb;
+  font-size:12px;
 }
 
 .tabs button.active {
@@ -24,10 +40,18 @@ h2 { text-align:center; }
   color:#fff;
 }
 
+/* Table container for scroll */
+.table-container {
+  width:100%;
+  overflow-x:auto;
+  background:#fff;
+  border-radius:8px;
+}
+
 /* Table */
 table {
   width:100%;
-  background:#fff;
+  min-width:900px; /* important for mobile scroll */
   border-collapse: collapse;
 }
 
@@ -35,13 +59,16 @@ th, td {
   padding:8px;
   border-bottom:1px solid #eee;
   font-size:12px;
+  text-align:left;
 }
 
-th { background:#f1f2f4; }
+th {
+  background:#f1f2f4;
+}
 
 /* Buttons */
 .btn {
-  padding:5px 8px;
+  padding:6px 10px;
   margin:2px;
   border:none;
   border-radius:5px;
@@ -55,6 +82,34 @@ th { background:#f1f2f4; }
 .done { background:#f3f4f6; }
 .undo { background:#fdecea; color:#c62828; }
 .delete { background:#000; color:#fff; }
+
+/* 🔥 MOBILE SPECIFIC */
+@media (max-width: 768px) {
+
+  body {
+    padding:6px;
+  }
+
+  h2 {
+    font-size:16px;
+  }
+
+  .tabs button {
+    font-size:11px;
+    padding:6px 8px;
+  }
+
+  th, td {
+    font-size:11px;
+    padding:6px;
+  }
+
+  .btn {
+    font-size:10px;
+    padding:5px 7px;
+  }
+
+}
 
 </style>
 </head>
@@ -72,7 +127,9 @@ th { background:#f1f2f4; }
   <button data-tab="deleted">Deleted</button>
 </div>
 
-<table id="table"></table>
+<div class="table-container">
+  <table id="table"></table>
+</div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbwcCPMTmU2FC0QDC-erKTzoz2GEmQAlXm4hYgnHSPyGW3BVHR1RU3Nxf5wurv3-ideMAA/exec";
