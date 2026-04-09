@@ -154,7 +154,7 @@ function setTab(tab){
   loadData();
 }
 
-// ✅ DATE FORMAT FIX
+// DATE FORMAT
 function formatDate(dateStr){
   if(!dateStr) return "";
   let d = new Date(dateStr);
@@ -166,7 +166,7 @@ function formatDate(dateStr){
   });
 }
 
-// ✅ TIME FORMAT FIX (1899 ISSUE SOLVED)
+// TIME FORMAT
 function formatTime(timeStr){
   if(!timeStr) return "";
   let d = new Date(timeStr);
@@ -184,6 +184,7 @@ async function loadData(){
   let data = await res.json();
 
   let html = `
+<thead>
 <tr>
 <th>Date</th>
 <th>Time</th>
@@ -197,7 +198,10 @@ async function loadData(){
 <th>Status</th>
 <th>Duplicate</th>
 <th>Action</th>
-</tr>`;
+</tr>
+</thead>
+<tbody>
+`;
 
   data.forEach(item=>{
 
@@ -227,6 +231,8 @@ async function loadData(){
 </td>
 </tr>`;
   });
+
+  html += `</tbody>`; // ✅ IMPORTANT FIX
 
   document.getElementById("table").innerHTML = html;
 }
@@ -258,7 +264,7 @@ function nextButton(item){
   return "";
 }
 
-// DELETE BUTTON
+// DELETE
 function deleteButton(item){
   if(item.status === "pending"){
     return `<button class="btn delete" onclick="action('${item.request_id}','deleted')">Delete</button>`;
@@ -294,7 +300,7 @@ function action(id, status){
 
   updateStatus(id, status);
 
-  setTab(status); // 🔥 tab auto switch fix
+  setTab(status);
 }
 
 // API
