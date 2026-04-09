@@ -40,19 +40,11 @@ h2 {
   color:#fff;
 }
 
-/* Table container for scroll */
-.table-container {
-  width:100%;
-  overflow-x:auto;
-  background:#fff;
-  border-radius:8px;
-}
-
 /* Table */
 table {
   width:100%;
-  min-width:900px; /* important for mobile scroll */
   border-collapse: collapse;
+  background:#fff;
 }
 
 th, td {
@@ -83,30 +75,41 @@ th {
 .undo { background:#fdecea; color:#c62828; }
 .delete { background:#000; color:#fff; }
 
-/* 🔥 MOBILE SPECIFIC */
+/* 🔥 MOBILE CARD VIEW */
 @media (max-width: 768px) {
 
-  body {
-    padding:6px;
+  table, thead, tbody, th, td, tr {
+    display:block;
   }
 
-  h2 {
-    font-size:16px;
+  thead {
+    display:none;
   }
 
-  .tabs button {
-    font-size:11px;
-    padding:6px 8px;
+  tr {
+    background:#fff;
+    margin-bottom:12px;
+    border-radius:10px;
+    padding:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
   }
 
-  th, td {
-    font-size:11px;
-    padding:6px;
+  td {
+    display:flex;
+    justify-content:space-between;
+    padding:6px 0;
+    border:none;
+    font-size:12px;
+  }
+
+  td::before {
+    content: attr(data-label);
+    font-weight:bold;
+    color:#555;
   }
 
   .btn {
-    font-size:10px;
-    padding:5px 7px;
+    margin-top:5px;
   }
 
 }
@@ -206,18 +209,18 @@ async function loadData(){
 
     html += `
 <tr>
-<td>${formatDate(item.date)}</td>
-<td>${formatTime(item.time)}</td>
-<td>${item.request_id}</td>
-<td>${item.name}</td>
-<td>${item.mobile}</td>
-<td>${item.email}</td>
-<td>${item.order_id}</td>
-<td>${item.type}</td>
-<td>${item.reason}</td>
-<td>${item.status}</td>
-<td>${item.duplicate}</td>
-<td>
+<td data-label="Date">${formatDate(item.date)}</td>
+<td data-label="Time">${formatTime(item.time)}</td>
+<td data-label="ID">${item.request_id}</td>
+<td data-label="Name">${item.name}</td>
+<td data-label="Mobile">${item.mobile}</td>
+<td data-label="Email">${item.email}</td>
+<td data-label="Order">${item.order_id}</td>
+<td data-label="Type">${item.type}</td>
+<td data-label="Reason">${item.reason}</td>
+<td data-label="Status">${item.status}</td>
+<td data-label="Duplicate">${item.duplicate}</td>
+<td data-label="Action">
   ${nextButton(item)}
   ${undoButton(item)}
   ${deleteButton(item)}
