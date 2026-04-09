@@ -1,112 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel</title>
+<title>Admin Panel</title>
 
-  <style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-    background: #f6f6f7;
-    color: #202223;
-    padding: 12px;
-    margin: 0;
-  }
+<style>
+body { font-family: Arial; background:#f6f6f7; padding:10px; }
+h2 { text-align:center; }
 
-  h2 {
-    text-align: center;
-    margin-bottom: 16px;
-    font-size: 20px;
-  }
+/* Tabs */
+.tabs { text-align:center; margin-bottom:10px; }
 
-  /* Container for table */
-  .table-container {
-    width: 100%;
-    overflow-x: auto;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  }
+.tabs button {
+  padding:8px 12px;
+  margin:3px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  background:#e5e7eb;
+}
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 900px; /* allows horizontal scroll on mobile */
-  }
+.tabs button.active {
+  background:#111;
+  color:#fff;
+}
 
-  th {
-    background: #f1f2f4;
-    color: #6d7175;
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    padding: 10px;
-    border-bottom: 1px solid #e1e3e5;
-  }
+/* Table */
+table {
+  width:100%;
+  background:#fff;
+  border-collapse: collapse;
+}
 
-  td {
-    padding: 10px;
-    border-bottom: 1px solid #f1f2f4;
-    font-size: 13px;
-  }
+th, td {
+  padding:8px;
+  border-bottom:1px solid #eee;
+  font-size:12px;
+}
 
-  tr:hover {
-    background: #f9fafb;
-  }
+th { background:#f1f2f4; }
 
-  /* Buttons */
-  button {
-    padding: 6px 10px;
-    margin: 2px;
-    border-radius: 6px;
-    border: none;
-    font-size: 12px;
-    cursor: pointer;
-  }
+/* Buttons */
+.btn {
+  padding:5px 8px;
+  margin:2px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  font-size:11px;
+}
 
-  .pending {
-    background: #fff4e5;
-    color: #b26a00;
-  }
-
-  .approve {
-    background: #e3f1df;
-    color: #2e7d32;
-  }
-
-  .reject {
-    background: #fdecea;
-    color: #c62828;
-  }
-
-  button:active {
-    transform: scale(0.95);
-  }
-
-  /* Mobile Optimization */
-  @media (max-width: 768px) {
-
-    body {
-      padding: 8px;
-    }
-
-    h2 {
-      font-size: 18px;
-    }
-
-    table {
-      min-width: 700px;
-    }
-
-    th, td {
-      padding: 8px;
-      font-size: 12px;
-    }
-
-    button {
-      padding: 5px 8px;
-      font-size: 11px;
-    }
-  }
+.pickup { background:#e3f1df; }
+.received { background:#dbeafe; }
+.ship { background:#ede9fe; }
+.done { background:#f3f4f6; }
+.undo { background:#fdecea; color:#c62828; }
+.delete { background:#000; color:#fff; }
 
 </style>
 </head>
@@ -115,29 +63,94 @@
 
 <h2>Dashboard</h2>
 
-<div class="table-container">
-  <table id="table"></table>
+<div class="tabs" id="tabs">
+  <button data-tab="pending" class="active">Active</button>
+  <button data-tab="pickup_generated">Pickup</button>
+  <button data-tab="received">Received</button>
+  <button data-tab="exchange_shipped">Shipped</button>
+  <button data-tab="completed">Completed</button>
+  <button data-tab="deleted">Deleted</button>
 </div>
+
+<table id="table"></table>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbwcCPMTmU2FC0QDC-erKTzoz2GEmQAlXm4hYgnHSPyGW3BVHR1RU3Nxf5wurv3-ideMAA/exec";
+let currentTab = "pending";
 
-async function loadData() {
+// TAB CLICK
+document.querySelectorAll("#tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    setTab(btn.dataset.tab);
+  });
+});
+
+function setTab(tab){
+  currentTab = tab;
+
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.remove("active"));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add("active");
+
+  loadData();
+}
+
+// ✅ DATE FORMAT FIX
+function formatDate(dateStr){
+  if(!dateStr) return "";
+  let d = new Date(dateStr);
+  return d.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+// ✅ TIME FORMAT FIX (1899 ISSUE SOLVED)
+function formatTime(timeStr){
+  if(!timeStr) return "";
+  let d = new Date(timeStr);
+  return d.toLocaleTimeString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+// LOAD DATA
+async function loadData(){
   let res = await fetch(API);
   let data = await res.json();
 
-  let html = `<tr>
-<th>Date</th><th>Time</th><th>ID</th><th>Name</th><th>Mobile</th>
-<th>Email</th><th>Order</th><th>Type</th><th>Reason</th>
-<th>Status</th><th>Duplicate</th><th>Action</th>
+  let html = `
+<tr>
+<th>Date</th>
+<th>Time</th>
+<th>ID</th>
+<th>Name</th>
+<th>Mobile</th>
+<th>Email</th>
+<th>Order</th>
+<th>Type</th>
+<th>Reason</th>
+<th>Status</th>
+<th>Duplicate</th>
+<th>Action</th>
 </tr>`;
 
-  data.forEach(item => {
+  data.forEach(item=>{
+
+    if(currentTab === "completed"){
+      if(item.status !== "completed" && item.status !== "refunded") return;
+    } else {
+      if(item.status !== currentTab) return;
+    }
 
     html += `
 <tr>
-<td>${item.date}</td>
-<td>${item.time}</td>
+<td>${formatDate(item.date)}</td>
+<td>${formatTime(item.time)}</td>
 <td>${item.request_id}</td>
 <td>${item.name}</td>
 <td>${item.mobile}</td>
@@ -145,14 +158,12 @@ async function loadData() {
 <td>${item.order_id}</td>
 <td>${item.type}</td>
 <td>${item.reason}</td>
-
 <td>${item.status}</td>
 <td>${item.duplicate}</td>
-
 <td>
-<button class="pending" onclick="updateStatus('${item.request_id}','pending')">Pending</button>
-<button class="approve" onclick="updateStatus('${item.request_id}','pickup generated')">Pickup Generated</button>
-<button class="reject" onclick="updateStatus('${item.request_id}','done')">Done</button>
+  ${nextButton(item)}
+  ${undoButton(item)}
+  ${deleteButton(item)}
 </td>
 </tr>`;
   });
@@ -160,20 +171,87 @@ async function loadData() {
   document.getElementById("table").innerHTML = html;
 }
 
-async function updateStatus(id, status) {
+// NEXT ACTION
+function nextButton(item){
+
+  if(item.status === "pending"){
+    return `<button class="btn pickup" onclick="action('${item.request_id}','pickup_generated')">Pickup</button>`;
+  }
+
+  if(item.status === "pickup_generated"){
+    return `<button class="btn received" onclick="action('${item.request_id}','received')">Received</button>`;
+  }
+
+  if(item.status === "received"){
+    if(item.type === "exchange"){
+      return `<button class="btn ship" onclick="action('${item.request_id}','exchange_shipped')">Shipped</button>`;
+    }
+    if(item.type === "return"){
+      return `<button class="btn done" onclick="action('${item.request_id}','refunded')">Refund</button>`;
+    }
+  }
+
+  if(item.status === "exchange_shipped"){
+    return `<button class="btn done" onclick="action('${item.request_id}','completed')">Complete</button>`;
+  }
+
+  return "";
+}
+
+// DELETE BUTTON
+function deleteButton(item){
+  if(item.status === "pending"){
+    return `<button class="btn delete" onclick="action('${item.request_id}','deleted')">Delete</button>`;
+  }
+  return "";
+}
+
+// UNDO
+function undoButton(item){
+
+  let prev = "";
+
+  if(item.status === "pickup_generated") prev = "pending";
+  else if(item.status === "received") prev = "pickup_generated";
+  else if(item.status === "exchange_shipped") prev = "received";
+  else if(item.status === "completed") prev = "exchange_shipped";
+  else if(item.status === "refunded") prev = "received";
+  else if(item.status === "deleted") prev = "pending";
+
+  if(prev === "") return "";
+
+  return `<button class="btn undo" onclick="action('${item.request_id}','${prev}')">Undo</button>`;
+}
+
+// ACTION
+function action(id, status){
+
+  let msg = (status === "deleted") 
+    ? "Delete this request?" 
+    : "Proceed to next step?";
+
+  if(!confirm(msg)) return;
+
+  updateStatus(id, status);
+
+  setTab(status); // 🔥 tab auto switch fix
+}
+
+// API
+async function updateStatus(id, status){
   await fetch(API, {
-    method: "POST",
+    method:"POST",
     body: JSON.stringify({
-      action: "update",
-      request_id: id,
-      status: status
+      action:"update",
+      request_id:id,
+      status:status
     })
   });
-  loadData();
 }
 
 loadData();
 setInterval(loadData, 5000);
+
 </script>
 
 </body>
