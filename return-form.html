@@ -155,6 +155,9 @@ document.getElementById("form").addEventListener("submit", async function(e) {
   let form = new FormData(this);
   let data = Object.fromEntries(form.entries());
 
+  // 🔥 ADD THIS (IMPORTANT)
+  data.source = "return_form";
+
   try {
     let res = await fetch(API, {
       method: "POST",
@@ -163,10 +166,8 @@ document.getElementById("form").addEventListener("submit", async function(e) {
 
     let json = await res.json();
 
-    // ✅ Safe request_id handling
-    let requestId = json.request_id ? json.request_id : "N/A";
+    let requestId = json.request_id || "N/A";
 
-    // Hide form
     document.getElementById("form").style.display = "none";
 
     let msg = `Your request has been received successfully.
